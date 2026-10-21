@@ -1,103 +1,131 @@
-# lucid — 空論語（kuron）
+# kuron
 
-> 明晰夢（lucid dream）のように、意図して見る「動く幻覚」。
+**A programming language whose CPU is an LLM.**
 
-**LLM を CPU とするプログラミング言語。** 設計書のように書いたプログラムを、LLM がコンパイルし、LLM が CPU として実行します（既定は Claude Sonnet 5.5 と Haiku 5.5、ローカルモデルにも切り替え可能）。
-普通なら作るのに何時間もかかるもの、今の技術では書けない処理（判断・予測・生成・まだ無いものの模擬）も、書いたその場で**手で触って使える形**で動きます。動きを確かめたら、実行記録を正解例にして、本物を作るための仕様・計画・プロンプトまで逆算します。
-
-*A programming language whose CPU is an LLM. A design document is compiled by one LLM and executed by another (Claude Sonnet / Haiku through Claude Code, or local models), so things that would take hours to build — or that ordinary code cannot do — run immediately and can be tried by hand. Then the recorded executions become golden examples for the real implementation plan.*
+*Kūron* (空論) is Japanese for "armchair theory": an idea that only exists on paper. kuron turns such an idea into something
+you can actually **use by hand within a few minutes**, not a mock-up or a video. You write (or ask Claude to write) a short design
+document; an LLM compiles it, and another LLM runs it as the CPU. Things that would take hours to build, or that ordinary code
+cannot do at all (judging, predicting, generating, simulating things that do not exist yet), work immediately because **the LLM
+does the work that code would normally do.** Once you have tried the idea, kuron reverse-engineers it into a specification,
+golden examples and an implementation plan with ready-to-use prompts.
 
 ```
-人の指示 ──▶ Claude Code（上流）: プログラムを書く・直す・計画を立てる
-              │
-              ▼
-          app.kuron（設計書の形の空論語。日本語・英語・中国語・韓国語の見出しで書ける）
-              │  ローカル LLM = コンパイラ（状態の型・画面・命令列・検証へ）
-              ▼
-          .kuron/ir.json
-              │  ローカル LLM = CPU（操作のたびに命令列を実行。結果は状態の型で縛られる）
-              ▼
-          動くシステム（サイト・スマホ・IoT・ターミナル… 複数の機器が1つの状態を共有）
-              │  触る → 要望 → Claude が直す → 再コンパイル（変わった節だけ）
-              ▼
-          kuron reverse: SPEC.md + examples.jsonl（実行記録 = 正解例）+ PLAN.md（日程・手順・プロンプト）
+your words ──▶ upstream (Claude Code): writes and revises the program, plans the real build
+                 │
+                 ▼
+             app.kuron      a design document: headings and bullets, in Japanese, English, Chinese or Korean
+                 │  compiler LLM: fills in what is missing, then lowers it to typed state, screens,
+                 │                instruction lists and checks
+                 ▼
+             .kuron/<name>/ir.json
+                 │  CPU LLM: runs the instructions on every action; output is constrained to the state's types
+                 ▼
+             a working system (website, phone, IoT device, terminal… several devices can share one state)
+                 │  try it → note what should change → Claude revises → only the changed parts recompile
+                 ▼
+             kuron reverse: SPEC.md + examples.jsonl (recorded executions = golden examples) + PLAN.md
 ```
 
-## 必要なもの / Requirements
+## Principles
+
+- **No per-idea code, ever.** The minimal UI is generated; everything difficult is done by the LLM while the program runs.
+- **The real world through general components.** Camera, microphone, synthesized test sounds, earphone/speaker output with
+  per-band gains, speech, and drawings are built in once. They have strict data contracts, so the CPU can only write data they
+  understand. The judgement (what a camera frame means, which band to suppress, what to tell a person) is the LLM's job.
+- **Fix behaviour by instructing the LLM, not by patching code.** When a prototype does something wrong, say how it should behave
+  (the request bar or presentation mode); Claude revises the program and only the affected parts recompile.
+- **Ideal vs existing technology.** The compiler estimates how the idea would behave if it were built today with shippable
+  technology (delay, sound leaking past earphones, late or wrong decisions, coarse intervals). One switch makes the running
+  prototype behave that way, so you can feel both, e.g. how uncomfortable a noise-cancelling decision model with 150 ms of delay is.
+
+## Requirements
 
 - Node.js 20+
-- [Claude Code](https://claude.com/claude-code)（`claude` コマンド。ログイン済みであること）
-- ローカル構成で動かす場合のみ [Ollama](https://ollama.com) とモデル
+- [Claude Code](https://claude.com/claude-code) (the `claude` command, logged in)
+- Only for the local preset: [Ollama](https://ollama.com) and its models
 
-## 役割分担 / Roles
+## Roles
 
-| 役割 | `--preset claude`（既定） | `--preset local` |
+| Role | `--preset claude` (default) | `--preset local` |
 |---|---|---|
-| 上流: 指示の解釈・プログラムを書く/直す・計画 | Claude Code（既定モデル） | Claude Code（既定モデル） |
-| コンパイラ: プログラム → 型・画面・命令列 | `claude-sonnet-5-5` | `qwen3.8:27b-mlx` |
-| CPU: 操作のたびに命令列を実行 | `claude-haiku-5-5` | `qwen3.5:4b` |
+| Upstream: understand requests, write/revise programs, plan | Claude Code (writing new programs uses Sonnet 5.5) | Claude Code |
+| Compiler: program → state types, screens, instructions, checks | `claude-sonnet-5-5` | `qwen3.8:27b-mlx` |
+| CPU: runs instructions on every action | `claude-haiku-5-5` | `qwen3.5:4b` |
 
-`claude-` で始まるモデルは Claude Code（`claude -p --json-schema`）経由、それ以外は Ollama で動きます。役割ごとに `--compile-model` / `--cpu-model` か `kuron.json`（`{"preset": "local", "cpuModel": "…"}`）で変えられます。
-顧客データを外に出せないデモやオフラインでは `--preset local` を使います。
+Models whose name starts with `claude-` run through Claude Code (`claude -p --json-schema`); any other name runs on Ollama.
+Override per role with `--compile-model` / `--cpu-model`, or in `kuron.json` (`{"preset": "local", "cpuModel": "…"}`).
+Use the local preset when data must not leave the machine or when you are offline.
 
-## 使い方 / Usage
+## Usage
 
 ```bash
-kuron new "冷蔵庫の中身から今夜の献立を決める冷蔵庫と、買い物リストが届くスマホ" -o fridge.kuron
-kuron dev fridge.kuron          # http://127.0.0.1:4870/ 開発画面、/present 発表モード
-kuron check fridge.kuron        # 検証を LLM-CPU で実行
-kuron reverse fridge.kuron      # reverse/fridge/ に SPEC.md・examples.jsonl・PLAN.md
+kuron new "a reception desk that notifies the host and warns about guests who have waited too long" -o desk.kuron
+kuron dev .                 # dev UI at http://127.0.0.1:4870/ — switch between every .kuron in the folder
+kuron check desk.kuron      # run the program's checks on the CPU; an LLM judges the expectations
+kuron reverse desk.kuron    # reverse/desk/: SPEC.md, examples.jsonl, PLAN.md
 ```
 
-開発画面: 左で実際のシステムを操作し、右で **状態 / 実行記録（CPU が実行した命令と変化）/ 検証 / 要望 / 逆算 / ソース** を見ます。
-下の欄に「ここをこうしたい」と書いて **Claude に反映させる** を押すと、上流の Claude Code がプログラムを書き直し、ローカル LLM が変わった節だけコンパイルし直します。
-**発表モード**（`/present`）は顧客に見せる画面で、右下の「要望をメモ」で、その場の要望を画面の文脈ごと記録できます。
+Run `node bin/kuron.js …` if the package is not linked.
 
-## 言語 / Language
+### Dev UI
 
-[docs/LANGUAGE.md](docs/LANGUAGE.md) を参照。最小の例:
+- **+ New**: type one line; Claude writes the program, it compiles and opens ready to use, with the time it took.
+- The running system on the left; on the right **State**, **Executions** (instructions the CPU ran, the state patch, cost),
+  **Checks**, **Requests**, **Reverse** and **Source**.
+- **Ideal / Existing tech** switch with the estimate shown above the system.
+- The request bar sends "this should …" to Claude, which revises the program.
+- **Presentation mode** (`/present`): only the system, plus a button to note requests together with where they were made.
+- State is saved to `.kuron/<name>/state.json` and restored after a restart; timer actions (`## Every 30 seconds`) really run.
+
+## The language
+
+See [docs/LANGUAGE.md](docs/LANGUAGE.md). Section keywords work in Japanese, English, Chinese and Korean; everything else is
+free text in any language, and the system answers in the program's language. A minimal program:
 
 ```
-# システム: 締め切り番
-説明: タスクを入れると、締め切りと中身から今日やるべき順に並べる
-形: サイト
+# System: Deadline Keeper
+Description: Add tasks; it orders them by what you should do today and warns about the ones you are likely to forget
+Form: Website
 
-## 状態
-- タスク: 名前・締め切り・優先度（高/中/低）・済み を持つ一覧
+## State
+- tasks: list of tasks with name, deadline, priority (high/medium/low), reason, done
 
-## 画面 一覧
-- タスク名と締め切りの入力欄、「追加」ボタン
-- 済みでないタスクを優先度の高い順に表示。各行に「済み」ボタン
+## Screen List
+- Task name and deadline inputs with an "Add" button
+- Unfinished tasks, highest priority first; each row shows name, deadline, priority badge, reason and a "Done" button
 
-## 動き
-### 追加
-- 入力された名前と締め切りで新しいタスクを作る
-- 中身と締め切りから優先度を決める
-### 済み
-- 選んだタスクを済みにする
+## Actions
+### Add
+- Create a task from the name and deadline
+- Decide its priority from what it is and when it is due, and write the reason in one sentence
+### Done
+- Mark the selected task as done
 
-## 確かめる
-- 「請求書を送る（今日）」と「本を読む（来月）」を追加すると、請求書を送るの優先度が高くなる
+## Checks
+- Adding "Send the invoice (today)" and "Read a novel (next month)" gives the invoice the higher priority
 ```
 
-## 時間の目安（M1 Max 64GB で実測）
+The compiler adds what a program needs to really work (missing fields, screen parts, actions, a test situation) in the
+program's own words before compiling, so a one-paragraph idea is enough.
 
-**一言から使えるまで: 約 1 分**（Claude 構成。開発画面の「＋ 新しく作る」、または `kuron new` → `kuron compile`）
+## Timing (measured on an M1 Max, 64 GB)
 
-| 段階 | claude | local |
+**From one line to a usable system: about 1–2 minutes** with the Claude preset (target: under 5 minutes).
+
+| Step | claude | local |
 |---|---|---|
-| 上流がプログラムを書く（新規は Sonnet 5.5） | 約 20 秒 | 同左 |
-| 初回コンパイル（状態 → 画面 → 一覧・動き・検証を同時に） | 30〜45 秒 | 約 2.5 分 |
-| 再コンパイル（画面や動きだけ変えたとき） | 数秒〜20 秒 | 4〜30 秒 |
-| CPU 1 回の実行 | 3〜12 秒（生成する量が多いと 30 秒ほど） | 3〜8 秒 |
+| Upstream writes the program | ~20–30 s | same |
+| First compile | ~30–100 s | ~2.5 min |
+| Recompile after changing a screen or an action | a few s – 30 s | 4–30 s |
+| One CPU step | 3–20 s depending on how much it generates | 3–8 s |
 
-例: 「来客の受付をして、担当者に知らせ、待ち時間が長い人を教えてくれる受付システム」→ 63 秒、「読んだ本を登録すると、次に読むべき本を3冊すすめてくれる読書記録」→ 54 秒。
-Claude 構成の費用は Claude Code の利用枠から消費されます。実行記録に 1 回ごとの見積もりが出ます。
+With the Claude preset, usage counts against your Claude Code plan; the Executions tab shows the cost estimate per step.
 
-## 開発画面 / Dev UI
+## Examples
 
-`kuron dev <フォルダ>` で、フォルダ内のすべての `.kuron` を上部の一覧から切り替えられます。「＋ 新しく作る」で一言から新しいプログラムを作り、そのまま開きます。
-使っている状態は `.kuron/<名前>/state.json` に保存され、再起動しても続きから使えます。「## 毎 N 秒」の動きは開いている間、実際に時間どおり動きます。
+`examples/` contains a task manager, a fridge (IoT) with a shopping-list phone app, an English sales pipeline, earphones that
+suppress approaching noise while letting announcements and your name through, and a camera app that directs a remote person
+to take a better photo. `examples/reverse/shimekiri/` shows what `kuron reverse` produces.
 
 ## License
 
