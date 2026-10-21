@@ -1,0 +1,9 @@
+{
+  "name": "kuron",
+  "version": "0.1.0",
+  "description": "Kuron (空論語): a programming language whose CPU is a local LLM. Upstream Claude Code writes the program; the local LLM compiles and runs it.",
+  "type": "module",
+  "bin": { "kuron": "bin/kuron.js" },
+  "engines": { "node": ">=20" },
+  "license": "MIT"
+}

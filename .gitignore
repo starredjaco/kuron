@@ -1,0 +1,8 @@
+.kuron/
+node_modules/
+.DS_Store
+
+# programs made by hand in the dev UI (kept local)
+examples/判断の資産化.kuron
+examples/聞きたい音だけ残すイヤホン.kuron
+examples/聞き分けイヤホン.kuron

@@ -1,0 +1,32 @@
+# System: Deal Desk
+Description: Sales reps paste what a prospect said; the desk scores the deal, predicts the objections and drafts the next email
+Form: Website
+
+## State
+- deals: list of deals with company, notes, score (0-100), stage (new/qualified/proposal/won/lost), objections, next email
+- pipeline summary: one sentence about the whole pipeline
+- Start with 4 realistic sample deals from mid-size manufacturing companies
+
+## Screen Pipeline
+- Heading "Pipeline" and the pipeline summary
+- Company and notes inputs with an "Add deal" button
+- Deals sorted by score, highest first; each row shows company, stage badge, score, objections and a "Draft email" button and a "Mark won" button
+
+## Screen Email
+- The latest drafted email in full
+
+## Actions
+### Add deal
+- Create a deal from the company and notes, stage new
+- Score how likely it is to close from the notes, and list the two objections the prospect is most likely to raise
+- Rewrite the pipeline summary
+
+### Draft email
+- For the selected deal, write the next email that answers its objections, and store it as its next email
+
+### Mark won
+- Set the selected deal's stage to won and rewrite the pipeline summary
+
+## Checks
+- Adding "Acme Tools" with notes "budget approved, wants a demo next week" gives it a score above 60
+- Marking the first deal won sets its stage to won

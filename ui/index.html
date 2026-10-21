@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>kuron</title>
+<link rel="stylesheet" href="/ui/app.css">
+</head>
+<body>
+<header class="top" id="top">
+  <div class="brand"><b>kuron</b><span id="sysName">—</span><select id="prog" aria-label="program"></select></div>
+  <div class="meta">
+    <span class="pill" id="compileStatus">…</span>
+    <span class="dim" id="models"></span>
+  </div>
+  <div class="acts">
+    <button type="button" id="btnNew" class="primary" data-i18n="newProgram"></button>
+    <button type="button" id="btnReality" aria-pressed="false"></button>
+    <button type="button" id="btnSession" data-i18n="newRun"></button>
+    <button type="button" id="btnCheck" data-i18n="runChecks"></button>
+    <a id="lnkPresent" href="/present" target="_blank" rel="noopener" data-i18n="present"></a>
+    <select id="lang" aria-label="language"><option value="ja">日本語</option><option value="en">English</option></select>
+  </div>
+</header>
+
+<main class="main" id="main">
+  <section class="stagewrap">
+    <div class="banner" id="banner" hidden></div>
+    <section class="realpane" id="realityPane" hidden></section>
+    <div class="stage" id="stage"></div>
+    <form class="reqbar" id="reqForm">
+      <label for="reqText" class="sr" data-i18n="requestLabel"></label>
+      <input id="reqText" autocomplete="off" data-i18n-ph="requestPh">
+      <button type="submit" class="ghost" id="reqMemo" data-i18n="memo"></button>
+      <button type="button" class="primary" id="reqApply" data-i18n="applyNow"></button>
+    </form>
+  </section>
+
+  <aside class="side" id="side">
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="state" aria-selected="true" data-i18n="tabState"></button>
+      <button role="tab" data-tab="trace" aria-selected="false" data-i18n="tabTrace"></button>
+      <button role="tab" data-tab="check" aria-selected="false" data-i18n="tabCheck"></button>
+      <button role="tab" data-tab="req" aria-selected="false" data-i18n="tabReq"></button>
+      <button role="tab" data-tab="rev" aria-selected="false" data-i18n="tabRev"></button>
+      <button role="tab" data-tab="src" aria-selected="false" data-i18n="tabSrc"></button>
+    </nav>
+    <div class="pane" id="pane-state"></div>
+    <div class="pane" id="pane-trace" hidden></div>
+    <div class="pane" id="pane-check" hidden></div>
+    <div class="pane" id="pane-req" hidden></div>
+    <div class="pane" id="pane-rev" hidden></div>
+    <div class="pane" id="pane-src" hidden></div>
+  </aside>
+</main>
+
+<div class="modal" id="newSheet" hidden>
+  <form id="newForm">
+    <label for="newIdea" data-i18n="newIdeaLabel"></label>
+    <textarea id="newIdea" rows="4" data-i18n-ph="newIdeaPh"></textarea>
+    <p class="note" data-i18n="newNote"></p>
+    <div class="row"><button type="button" id="newCancel" data-i18n="cancel"></button><button type="submit" class="primary" data-i18n="create"></button></div>
+  </form>
+</div>
+<button type="button" class="fab" id="fab" hidden data-i18n="memoFab"></button>
+<div class="sheet" id="sheet" hidden>
+  <form id="sheetForm">
+    <label for="sheetText" data-i18n="requestLabel"></label>
+    <textarea id="sheetText" rows="4"></textarea>
+    <div class="row"><button type="button" id="sheetCancel" data-i18n="cancel"></button><button type="submit" class="primary" data-i18n="memo"></button></div>
+  </form>
+</div>
+<script type="module" src="/ui/app.js"></script>
+</body>
+</html>
