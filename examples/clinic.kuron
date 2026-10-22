@@ -1,0 +1,52 @@
+# Neighborhood clinic
+A small internal-medicine clinic runs its day on one shared system: bookings, reception, the patient interview,
+the doctor's notes, prescriptions, billing, medicine stock and waiting-time estimates. The reception tablet, the
+doctor's PC, the stock screen, the patient's phone and the waiting-room display each have their own screen.
+Language: English.
+
+## Data
+- Patients: name, age, chronic conditions, allergies, phone. Start with 8 believable patients.
+- Bookings: patient, time, purpose, status (booked / arrived / cancelled). Start with 6 bookings for today.
+- Reception: number, patient, time, symptom in a few words, urgency (high / medium / low), status (waiting / interviewed / with doctor / to pay / done), minutes waited.
+- Interviews: reception number, summary, points to watch, note for the doctor.
+- Exam records: reception number, doctor's note, assessment, draft prescription, next visit.
+- Prescriptions: reception number, medicine, dose, days, interaction warning.
+- Stock: medicine, left, minimum, on order. Start with 12 medicines.
+- Bills: reception number, amount, breakdown, paid.
+- Waiting-room notice: the number being called, the expected wait and one line of guidance.
+- Today's summary: check-ins, patients seen, average wait, anything worth attention, in one sentence.
+- Clock: the current time, starting at 9:00.
+
+## Screens
+- Reception (tablet): the notice; patient name and symptom inputs with a "Check in" button; today's bookings with
+  "Arrived" and "Cancel" on each; reception list, most urgent first, with urgency, status, minutes waited and
+  "To billing"; bills waiting with "Paid"; a "Next 10 minutes" button.
+- Consulting room (PC): who is with the doctor; the waiting list, most urgent first, with "Call in"; interviews;
+  the doctor's note input with "Record exam"; exam records with "Prescribe"; prescriptions.
+- Stock (PC): medicines with left, minimum, on order and "Order"; today's summary.
+- Patient (phone): "Your turn" with the notice; reception number and a longer description of symptoms with
+  "Send interview".
+- Waiting room (display): the notice in large type, and the waiting numbers with minutes waited.
+
+## Behaviour
+- Check in: create the reception entry (next number, the clock time, waiting); judge urgency from the symptom and
+  the patient's conditions and age; mark today's booking for that patient as arrived; estimate the wait from who is
+  waiting and how urgent they are; rewrite the notice.
+- Arrived: mark the booking arrived and check that patient in the same way. Cancel: mark it cancelled.
+- Send interview: summarise the description, write points to watch and a note for the doctor, mark the entry
+  interviewed and revise its urgency if the answers warrant it.
+- Call in: put the chosen entry with the doctor, move anyone already with the doctor to "to pay", update the notice.
+- Record exam: from the doctor's note and the interview, write the assessment, a draft prescription and the next visit.
+- Prescribe: turn the draft into prescriptions, check allergies, conditions and interactions and write warnings;
+  reduce stock and put anything below its minimum on order.
+- To billing: estimate the amount and breakdown from the exam and prescriptions. Paid: mark the bill paid and the
+  entry done, and rewrite today's summary.
+- Next 10 minutes: move the clock on 10 minutes, add 10 to everyone's minutes waited, sometimes add a believable
+  walk-in patient, rewrite the notice and the summary.
+- Order: put the medicine on order.
+
+## Checks
+- Checking in "Ken Sato" with "chest tightness" gives high urgency and puts him at the top of the list.
+- Sending an interview adds one interview and marks that entry interviewed.
+- Calling in, recording the exam and prescribing adds prescriptions and reduces the stock used.
+- Billing and paying marks the entry done and rewrites today's summary.

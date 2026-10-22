@@ -1,0 +1,806 @@
+{
+ "name": "Neighborhood Clinic",
+ "idea": "",
+ "brief": "One shared system for a small internal-medicine clinic. Collections: patients, bookings, reception, interviews, exams, prescriptions, stock, bills, notice (single item), summary (single item); value clock (starts 9:00).\nIntent rules:\n- Check in (inputs patient name, symptom): add reception entry with next number, clock time, status waiting, minutes waited 0. Judge urgency from symptom, patient's chronic conditions and age (chest tightness/pain, breathing trouble, fainting = high; fever, pain in older/chronic patients = medium; mild cold, refill = low). Mark that patient's booked booking arrived. Estimate wait from waiting people and urgency; rewrite notice (number called, expected wait, one line of guidance). Unknown names: add a new patient minimally.\n- Arrived: mark booking arrived and check in the same way using the booking purpose as symptom. Cancel: mark cancelled.\n- Send interview (reception number, description): add interview with summary, points to watch, note for doctor; set entry status interviewed; raise/lower urgency if warranted.\n- Call in (chosen entry): set it to with doctor; anyone already with doctor becomes to pay; update notice and the \"with doctor\" value.\n- Record exam (doctor's note): add exam record for the entry with assessment, draft prescription, next visit, using note and interview.\n- Prescribe (exam record): create prescription rows (medicine, dose, days), check allergies, conditions, interactions, write warning (or \"none\"); reduce stock by plausible amounts; if left < minimum set on order.\n- To billing: set entry to to pay if not; add bill with estimated amount (consultation about 1,500 yen-style or $ amounts, use USD) and breakdown from exam and prescriptions, paid false.\n- Paid: bill paid, entry done, rewrite summary (check-ins, seen, average wait, attention point in one sentence).\n- Next 10 minutes: clock +10, every non-done entry minutes waited +10, sometimes add a believable walk-in, rewrite notice and summary.\n- Order: set stock on order (add reorder quantity) for the medicine.\nAlways keep the notice and summary current.",
+ "lang": "en",
+ "values": {
+  "clock": "9:00",
+  "with doctor": "Nobody"
+ },
+ "collections": {
+  "patients": [
+   {
+    "name": "Ken Sato",
+    "age": 58,
+    "conditions": "hypertension",
+    "allergies": "none",
+    "phone": "090-1111-0001",
+    "id": "i1"
+   },
+   {
+    "name": "Mary Tanaka",
+    "age": 72,
+    "conditions": "diabetes, hypertension",
+    "allergies": "penicillin",
+    "phone": "090-1111-0002",
+    "id": "i2"
+   },
+   {
+    "name": "Joe Suzuki",
+    "age": 34,
+    "conditions": "none",
+    "allergies": "none",
+    "phone": "090-1111-0003",
+    "id": "i3"
+   },
+   {
+    "name": "Emi Kato",
+    "age": 27,
+    "conditions": "asthma",
+    "allergies": "aspirin",
+    "phone": "090-1111-0004",
+    "id": "i4"
+   },
+   {
+    "name": "Hiro Ito",
+    "age": 65,
+    "conditions": "heart failure",
+    "allergies": "none",
+    "phone": "090-1111-0005",
+    "id": "i5"
+   },
+   {
+    "name": "Anna Brown",
+    "age": 45,
+    "conditions": "migraine",
+    "allergies": "none",
+    "phone": "090-1111-0006",
+    "id": "i6"
+   },
+   {
+    "name": "Taro Yamada",
+    "age": 8,
+    "conditions": "none",
+    "allergies": "egg",
+    "phone": "090-1111-0007",
+    "id": "i7"
+   },
+   {
+    "name": "Rina Mori",
+    "age": 80,
+    "conditions": "kidney disease",
+    "allergies": "NSAIDs",
+    "phone": "090-1111-0008",
+    "id": "i8"
+   }
+  ],
+  "bookings": [
+   {
+    "patient": "Mary Tanaka",
+    "time": "9:30",
+    "purpose": "diabetes check-up",
+    "status": "booked",
+    "id": "i9"
+   },
+   {
+    "patient": "Joe Suzuki",
+    "time": "9:40",
+    "purpose": "sore throat and cough",
+    "status": "booked",
+    "id": "i10"
+   },
+   {
+    "patient": "Emi Kato",
+    "time": "10:00",
+    "purpose": "asthma inhaler refill",
+    "status": "booked",
+    "id": "i11"
+   },
+   {
+    "patient": "Hiro Ito",
+    "time": "10:20",
+    "purpose": "swollen ankles",
+    "status": "booked",
+    "id": "i12"
+   },
+   {
+    "patient": "Anna Brown",
+    "time": "10:40",
+    "purpose": "headache",
+    "status": "booked",
+    "id": "i13"
+   },
+   {
+    "patient": "Taro Yamada",
+    "time": "11:00",
+    "purpose": "fever",
+    "status": "booked",
+    "id": "i14"
+   }
+  ],
+  "stock": [
+   {
+    "medicine": "Amlodipine 5mg",
+    "left": 120,
+    "minimum": 50,
+    "on order": 0,
+    "id": "i15"
+   },
+   {
+    "medicine": "Metformin 500mg",
+    "left": 90,
+    "minimum": 60,
+    "on order": 0,
+    "id": "i16"
+   },
+   {
+    "medicine": "Acetaminophen 500mg",
+    "left": 200,
+    "minimum": 80,
+    "on order": 0,
+    "id": "i17"
+   },
+   {
+    "medicine": "Loxoprofen 60mg",
+    "left": 70,
+    "minimum": 40,
+    "on order": 0,
+    "id": "i18"
+   },
+   {
+    "medicine": "Amoxicillin 250mg",
+    "left": 60,
+    "minimum": 50,
+    "on order": 0,
+    "id": "i19"
+   },
+   {
+    "medicine": "Salbutamol inhaler",
+    "left": 15,
+    "minimum": 10,
+    "on order": 0,
+    "id": "i20"
+   },
+   {
+    "medicine": "Furosemide 20mg",
+    "left": 45,
+    "minimum": 30,
+    "on order": 0,
+    "id": "i21"
+   },
+   {
+    "medicine": "Omeprazole 20mg",
+    "left": 80,
+    "minimum": 40,
+    "on order": 0,
+    "id": "i22"
+   },
+   {
+    "medicine": "Sumatriptan 50mg",
+    "left": 20,
+    "minimum": 15,
+    "on order": 0,
+    "id": "i23"
+   },
+   {
+    "medicine": "Cough syrup",
+    "left": 25,
+    "minimum": 20,
+    "on order": 0,
+    "id": "i24"
+   },
+   {
+    "medicine": "Nitroglycerin tablets",
+    "left": 12,
+    "minimum": 10,
+    "on order": 0,
+    "id": "i25"
+   },
+   {
+    "medicine": "Oral rehydration salts",
+    "left": 40,
+    "minimum": 20,
+    "on order": 0,
+    "id": "i26"
+   }
+  ],
+  "notice": [
+   {
+    "calling": "None yet",
+    "expected wait": "About 10 minutes",
+    "guidance": "Welcome. Please check in at reception.",
+    "id": "i27"
+   }
+  ],
+  "summary": [
+   {
+    "text": "No check-ins yet today.",
+    "id": "i28"
+   }
+  ],
+  "reception": [
+   {
+    "number": 1,
+    "patient": "Rina Mori",
+    "time": "8:50",
+    "symptom": "dizziness",
+    "urgency": "medium",
+    "status": "waiting",
+    "minutes waited": 10,
+    "id": "i29"
+   }
+  ],
+  "interviews": [],
+  "exams": [],
+  "prescriptions": [],
+  "bills": []
+ },
+ "screens": [
+  {
+   "name": "Waiting room",
+   "device": "waiting room display",
+   "frame": "iot",
+   "parts": [
+    {
+     "kind": "list",
+     "collection": "notice",
+     "columns": [
+      "calling",
+      "expected wait",
+      "guidance"
+     ]
+    },
+    {
+     "kind": "list",
+     "collection": "reception",
+     "where": {
+      "status": "waiting"
+     },
+     "row": [
+      {
+       "kind": "heading",
+       "text": "No. {number}"
+      },
+      {
+       "kind": "text",
+       "text": "{minutes waited} min waited"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Reception",
+   "device": "reception tablet",
+   "frame": "panel",
+   "parts": [
+    {
+     "kind": "heading",
+     "text": "Reception"
+    },
+    {
+     "kind": "text",
+     "text": "Clock {value clock}"
+    },
+    {
+     "kind": "list",
+     "collection": "notice",
+     "columns": [
+      "calling",
+      "expected wait",
+      "guidance"
+     ]
+    },
+    {
+     "kind": "input",
+     "name": "patient name",
+     "label": "Patient name",
+     "inputType": "text"
+    },
+    {
+     "kind": "input",
+     "name": "symptom",
+     "label": "Symptom",
+     "inputType": "text"
+    },
+    {
+     "kind": "button",
+     "text": "Check in",
+     "intent": "Check in the patient with the given name and symptom"
+    },
+    {
+     "kind": "heading",
+     "text": "Today's bookings"
+    },
+    {
+     "kind": "list",
+     "collection": "bookings",
+     "row": [
+      {
+       "kind": "text",
+       "text": "{patient} {time} {purpose} ({status})"
+      },
+      {
+       "kind": "button",
+       "text": "Arrived",
+       "intent": "Mark this booking arrived and check the patient in"
+      },
+      {
+       "kind": "button",
+       "text": "Cancel",
+       "intent": "Cancel this booking"
+      }
+     ]
+    },
+    {
+     "kind": "heading",
+     "text": "Reception list"
+    },
+    {
+     "kind": "list",
+     "collection": "reception",
+     "order": {
+      "property": "urgency",
+      "values": [
+       "high",
+       "medium",
+       "low"
+      ]
+     },
+     "row": [
+      {
+       "kind": "text",
+       "text": "#{number} {patient} - {symptom}"
+      },
+      {
+       "kind": "badge",
+       "text": "{urgency}"
+      },
+      {
+       "kind": "badge",
+       "text": "{status}"
+      },
+      {
+       "kind": "text",
+       "text": "{minutes waited} min"
+      },
+      {
+       "kind": "button",
+       "text": "To billing",
+       "intent": "Send this reception entry to billing and create the bill"
+      }
+     ]
+    },
+    {
+     "kind": "heading",
+     "text": "Bills waiting"
+    },
+    {
+     "kind": "list",
+     "collection": "bills",
+     "where": {
+      "paid": false
+     },
+     "row": [
+      {
+       "kind": "text",
+       "text": "#{reception number} ${amount} {breakdown}"
+      },
+      {
+       "kind": "button",
+       "text": "Paid",
+       "intent": "Mark this bill paid and the entry done"
+      }
+     ]
+    },
+    {
+     "kind": "button",
+     "text": "Next 10 minutes",
+     "intent": "Move the clock on 10 minutes"
+    }
+   ]
+  },
+  {
+   "name": "Consulting room",
+   "device": "doctor's PC",
+   "frame": "desktop",
+   "parts": [
+    {
+     "kind": "heading",
+     "text": "Consulting room"
+    },
+    {
+     "kind": "text",
+     "text": "With the doctor: {value with doctor}"
+    },
+    {
+     "kind": "heading",
+     "text": "Waiting (most urgent first)"
+    },
+    {
+     "kind": "list",
+     "collection": "reception",
+     "where": {
+      "status": "waiting"
+     },
+     "order": {
+      "property": "urgency",
+      "values": [
+       "high",
+       "medium",
+       "low"
+      ]
+     },
+     "row": [
+      {
+       "kind": "text",
+       "text": "#{number} {patient} - {symptom}"
+      },
+      {
+       "kind": "badge",
+       "text": "{urgency}"
+      },
+      {
+       "kind": "text",
+       "text": "{minutes waited} min"
+      },
+      {
+       "kind": "button",
+       "text": "Call in",
+       "intent": "Call in this waiting entry to the doctor"
+      }
+     ]
+    },
+    {
+     "kind": "list",
+     "collection": "reception",
+     "where": {
+      "status": "interviewed"
+     },
+     "order": {
+      "property": "urgency",
+      "values": [
+       "high",
+       "medium",
+       "low"
+      ]
+     },
+     "row": [
+      {
+       "kind": "text",
+       "text": "#{number} {patient} (interviewed) - {symptom}"
+      },
+      {
+       "kind": "badge",
+       "text": "{urgency}"
+      },
+      {
+       "kind": "button",
+       "text": "Call in",
+       "intent": "Call in this waiting entry to the doctor"
+      }
+     ]
+    },
+    {
+     "kind": "heading",
+     "text": "Interviews"
+    },
+    {
+     "kind": "table",
+     "collection": "interviews",
+     "columns": [
+      "reception number",
+      "summary",
+      "points to watch",
+      "note for the doctor"
+     ]
+    },
+    {
+     "kind": "input",
+     "name": "doctor note",
+     "label": "Doctor's note",
+     "inputType": "longtext"
+    },
+    {
+     "kind": "button",
+     "text": "Record exam",
+     "intent": "Record exam for the patient with the doctor from the doctor's note"
+    },
+    {
+     "kind": "heading",
+     "text": "Exam records"
+    },
+    {
+     "kind": "list",
+     "collection": "exams",
+     "row": [
+      {
+       "kind": "text",
+       "text": "#{reception number} {assessment} | Draft: {draft prescription} | Next: {next visit}"
+      },
+      {
+       "kind": "button",
+       "text": "Prescribe",
+       "intent": "Prescribe from this exam record's draft"
+      }
+     ]
+    },
+    {
+     "kind": "heading",
+     "text": "Prescriptions"
+    },
+    {
+     "kind": "table",
+     "collection": "prescriptions",
+     "columns": [
+      "reception number",
+      "medicine",
+      "dose",
+      "days",
+      "interaction warning"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Stock",
+   "device": "stock PC",
+   "frame": "desktop",
+   "parts": [
+    {
+     "kind": "heading",
+     "text": "Medicine stock"
+    },
+    {
+     "kind": "list",
+     "collection": "stock",
+     "row": [
+      {
+       "kind": "text",
+       "text": "{medicine}: left {left}, min {minimum}, on order {on order}"
+      },
+      {
+       "kind": "button",
+       "text": "Order",
+       "intent": "Order this medicine"
+      }
+     ]
+    },
+    {
+     "kind": "heading",
+     "text": "Today's summary"
+    },
+    {
+     "kind": "list",
+     "collection": "summary",
+     "columns": [
+      "text"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Patient",
+   "device": "patient's phone",
+   "frame": "phone",
+   "parts": [
+    {
+     "kind": "heading",
+     "text": "Your turn"
+    },
+    {
+     "kind": "list",
+     "collection": "notice",
+     "columns": [
+      "calling",
+      "expected wait",
+      "guidance"
+     ]
+    },
+    {
+     "kind": "input",
+     "name": "reception number",
+     "label": "Reception number",
+     "inputType": "number"
+    },
+    {
+     "kind": "input",
+     "name": "description",
+     "label": "Describe your symptoms",
+     "inputType": "longtext"
+    },
+    {
+     "kind": "button",
+     "text": "Send interview",
+     "intent": "Send interview for the reception number with the description"
+    }
+   ]
+  }
+ ],
+ "timers": [],
+ "checks": [
+  {
+   "name": "Chest tightness check-in",
+   "steps": [
+    {
+     "intent": "Check in",
+     "inputs": {
+      "patient name": "Ken Sato",
+      "symptom": "chest tightness"
+     }
+    }
+   ],
+   "expect": [
+    "Ken Sato has high urgency",
+    "He is first in the reception list",
+    "Notice rewritten"
+   ]
+  },
+  {
+   "name": "Visit to payment",
+   "steps": [
+    {
+     "intent": "Call in",
+     "item": "Rina Mori"
+    },
+    {
+     "intent": "Record exam",
+     "inputs": {
+      "doctor note": "BP low, dehydrated"
+     }
+    },
+    {
+     "intent": "Prescribe",
+     "item": "exam record"
+    },
+    {
+     "intent": "To billing",
+     "item": "Rina Mori"
+    },
+    {
+     "intent": "Paid",
+     "item": "her bill"
+    }
+   ],
+   "expect": [
+    "Prescriptions added with allergy check (NSAIDs avoided)",
+    "Stock reduced",
+    "Bill paid, entry done, summary rewritten"
+   ]
+  },
+  {
+   "name": "Interview",
+   "steps": [
+    {
+     "intent": "Send interview",
+     "inputs": {
+      "reception number": "1",
+      "description": "Dizzy for two days when standing, poor appetite"
+     }
+    }
+   ],
+   "expect": [
+    "One interview added",
+    "Entry 1 is interviewed"
+   ]
+  }
+ ],
+ "reality": {
+  "summary": "Records and screens are ordinary code; urgency, summaries and drug checks need a model plus a drug database, with clinician review.",
+  "items": [
+   {
+    "part": "urgency triage",
+    "existing": "LLM classifier",
+    "effect": "Occasional under-triage; must be reviewed by staff"
+   },
+   {
+    "part": "interaction check",
+    "existing": "Drug database service",
+    "effect": "Reliable if database used; model alone is risky"
+   }
+  ],
+  "intents": [
+   {
+    "intent": "Check in the patient with the given name and symptom",
+    "parts": [
+     {
+      "what": "create entry, mark booking",
+      "builtWith": "code",
+      "detail": "Database writes"
+     },
+     {
+      "what": "judge urgency",
+      "builtWith": "model",
+      "detail": "LLM with red-flag rules"
+     },
+     {
+      "what": "wait estimate and notice",
+      "builtWith": "code",
+      "detail": "Queue formula plus template"
+     }
+    ],
+    "errorRate": 0.1,
+    "delayMs": 2000,
+    "mistakes": "Under-rates vague symptoms; name mismatches"
+   },
+   {
+    "intent": "Send interview for the reception number with the description",
+    "parts": [
+     {
+      "what": "summarise and flag",
+      "builtWith": "model",
+      "detail": "LLM summarisation"
+     },
+     {
+      "what": "status update",
+      "builtWith": "code",
+      "detail": "DB write"
+     }
+    ],
+    "errorRate": 0.12,
+    "delayMs": 3500,
+    "mistakes": "Misses details or over-states certainty"
+   },
+   {
+    "intent": "Prescribe from this exam record's draft",
+    "parts": [
+     {
+      "what": "interaction and allergy check",
+      "builtWith": "service",
+      "detail": "Drug database API"
+     },
+     {
+      "what": "stock update",
+      "builtWith": "code",
+      "detail": "Inventory decrement"
+     }
+    ],
+    "errorRate": 0.08,
+    "delayMs": 3000,
+    "mistakes": "Missed rare interactions; wrong quantity"
+   },
+   {
+    "intent": "Record exam for the patient with the doctor from the doctor's note",
+    "parts": [
+     {
+      "what": "assessment and draft",
+      "builtWith": "model",
+      "detail": "LLM clinical drafting, doctor confirms"
+     }
+    ],
+    "errorRate": 0.15,
+    "delayMs": 4000,
+    "mistakes": "Plausible but wrong assessment"
+   },
+   {
+    "intent": "Move the clock on 10 minutes",
+    "parts": [
+     {
+      "what": "clock, waits, summary",
+      "builtWith": "code",
+      "detail": "Arithmetic"
+     },
+     {
+      "what": "walk-in",
+      "builtWith": "not_yet",
+      "detail": "Real walk-ins come from people, not simulated"
+     }
+    ],
+    "errorRate": 0.02,
+    "delayMs": 800,
+    "mistakes": "None significant"
+   }
+  ],
+  "audioLatencyMs": 0,
+  "leak": 0,
+  "decisionDelayMs": 2500,
+  "errorRate": 0.1,
+  "minIntervalSec": 1,
+  "cpuNote": "Light; model calls dominate latency."
+ },
+ "output": {
+  "sounds": [],
+  "bands": []
+ },
+ "nextId": 34
+}

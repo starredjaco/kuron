@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kuron — an LLM acts as the app</title>
+<meta name="description" content="Instead of generating code, an LLM with tools acts as the whole system, so you can try an idea by hand within minutes and find out whether it is worth building.">
+<meta property="og:title" content="kuron — an LLM acts as the app">
+<meta property="og:description" content="Try an idea by hand within minutes, before building it. No app code is generated: an LLM with tools is the system.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f5bd3'/%3E%3Ctext x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='white' text-anchor='middle'%3E%E7%A9%BA%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="face.css">
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#ffffff; --ink:#15171c; --ink-2:#4f5666; --ink-3:#808797; --line:#e1e4ea;
+  --accent:#2f5bd3; --accent-soft:rgba(47,91,211,.08);
+  --code:#1f7a4d; --model:#2f5bd3; --service:#9a6410; --notyet:#b4372b;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Noto Sans JP",sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111318; --panel:#181b22; --ink:#e6e8ee; --ink-2:#a9afbf; --ink-3:#757b8c; --line:#2a2e39;
+  --accent:#7c9cff; --accent-soft:rgba(124,156,255,.1);
+  --code:#58c48b; --model:#7c9cff; --service:#e2a84d; --notyet:#ff7b6e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111318; --panel:#181b22; --ink:#e6e8ee; --ink-2:#a9afbf; --ink-3:#757b8c; --line:#2a2e39;
+  --accent:#7c9cff; --accent-soft:rgba(124,156,255,.1);
+  --code:#58c48b; --model:#7c9cff; --service:#e2a84d; --notyet:#ff7b6e; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+.wrap{max-width:880px;margin:0 auto;padding:0 16px}
+header{padding:56px 0 32px}
+.brand{font-family:var(--mono);font-weight:700;font-size:15px;letter-spacing:.04em;color:var(--ink-2)}
+.brand span{color:var(--ink-3);font-weight:400;margin-left:8px}
+h1{font-size:clamp(30px,5.4vw,46px);line-height:1.15;letter-spacing:-.02em;margin:14px 0 18px;text-wrap:balance}
+.lede{font-size:clamp(17px,2.2vw,19px);color:var(--ink-2);max-width:42em;margin:0}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:8px;font-weight:600;text-decoration:none;border:1px solid var(--line);color:var(--ink);background:var(--panel)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+:root[data-theme="dark"] .btn.primary{color:#0b0d12}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn.primary{color:#0b0d12}}
+section{padding:36px 0;border-top:1px solid var(--line)}
+h2{font-size:22px;letter-spacing:-.01em;margin:0 0 14px}
+h3{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+.muted{color:var(--ink-2)}
+.small{font-size:14px}
+pre,code{font-family:var(--mono);font-size:13.5px}
+pre{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;line-height:1.55;margin:0 0 12px}
+:not(pre)>code{background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+.flow{white-space:pre;color:var(--ink-2)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:0 0 14px}
+.card .label{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);margin-bottom:6px}
+.turn{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14.5px}
+.turn dt{color:var(--ink-3);font-family:var(--mono);font-size:13px;padding-top:2px}
+.turn dd{margin:0}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 12px}
+table{border-collapse:collapse;width:100%;font-size:14.5px;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{font-size:13px;color:var(--ink-2);font-weight:600;background:var(--accent-soft)}
+tr:last-child td{border-bottom:0}
+td.num{font-family:var(--mono);font-size:13px;white-space:nowrap}
+.tag{display:inline-block;font-family:var(--mono);font-size:11.5px;padding:0 6px;border-radius:4px;border:1px solid currentColor;margin-right:4px;white-space:nowrap}
+.tag.code{color:var(--code)} .tag.model{color:var(--model)} .tag.service{color:var(--service)} .tag.notyet{color:var(--notyet)}
+.parts{list-style:none;margin:0;padding:0}
+.parts li{margin:0 0 3px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.cols{grid-template-columns:1fr} header{padding-top:36px}}
+ol,ul{padding-left:1.3em;margin:0 0 12px}
+li{margin:0 0 6px}
+.stat{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:12px}
+@media (max-width:640px){.stat{grid-template-columns:1fr}}
+.stat div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.stat b{display:block;font-size:24px;letter-spacing:-.01em}
+.stat span{font-size:13.5px;color:var(--ink-2)}
+.replay{border-top:1px solid var(--line);padding:36px 0}
+.replay .wrap>p{max-width:46em}
+.rp{max-width:1240px;margin:18px auto;padding:0 16px;display:grid;gap:14px}
+.rp-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{font:inherit}
+button.btn{cursor:pointer;padding:6px 14px}
+.rp-dots{display:flex;gap:6px;list-style:none;margin:0 0 0 6px;padding:0;flex-wrap:wrap}
+.rp-dots button{width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:var(--panel);color:var(--ink-2);font:12px var(--mono);cursor:pointer;padding:0}
+.rp-dots button[aria-current="step"]{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+.rp-dots .rq{border-style:dashed}
+.rp-cap{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 18px;display:grid;gap:6px;min-height:150px}
+.rp-cap .k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3)}
+.rp-cap .say{font-size:17px;font-weight:600}
+.rp-cap .act{font-family:var(--mono);font-size:13px;color:var(--ink-2);overflow-wrap:anywhere}
+.rp-cap .reply{border-left:3px solid var(--accent);padding-left:12px;white-space:pre-line}
+.rp-cap .meta{font-family:var(--mono);font-size:12.5px;color:var(--ink-3);overflow-wrap:anywhere}
+.rp-real{background:var(--panel);border:1px solid var(--service);border-radius:10px;padding:12px 16px;font-size:14px}
+.rp-real p{margin:0 0 8px}
+#rpStage{min-height:300px}
+footer{padding:32px 0 56px;border-top:1px solid var(--line);font-size:14px;color:var(--ink-3)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="brand">kuron<span>空論 · “armchair theory”</span></div>
+  <h1>Instead of generating code, an LLM with tools acts as the app.</h1>
+  <p class="lede">Write an idea in one line — even one that would take ~50 hours to build. Within about a minute it is running on minimal screens and you can use it by hand, so you can find out whether it is worth building. Nothing is generated per idea: the LLM sets the system up, then <em>is</em> the system on every action.</p>
+  <div class="cta">
+    <a class="btn primary" href="#replay">Watch a recorded run</a>
+    <a class="btn" href="https://claude.ai/artifact/UMMbf2FcV3ULi6d5WaW1yp">Try it in your browser</a>
+    <a class="btn" href="https://github.com/Ag3497120/kuron">Source on GitHub</a>
+  </div>
+</header>
+
+<section>
+  <h2>How it works</h2>
+  <pre class="flow">one line ─▶ setup agent (LLM + tools) ─▶ brief · data · screens · timers · checks · reality estimate
+                                               │
+button / timer / camera / mic ─▶ event agent (LLM + tools) ─▶ reads what it needs, changes the world,
+                                               │               speaks, plays sound, draws
+"this should…" ─▶ request agent ─▶ changes its own brief, screens, data, checks
+                                               │
+                               world.json ◀────┘ ─▶ minimal face: website, phone, desktop, IoT panel, watch…</pre>
+  <p>The code is only a set of generic tools exposed over MCP — store and read data, define a screen, notify, look through the camera, listen to the mic, play and shape sound, speak, draw, set timers — plus a minimal renderer. Every tool checks the <em>shape</em> of its input and answers in words; the LLM corrects itself. There is no business logic, no word list, no per-idea exception in the code.</p>
+  <p class="muted">When a prototype behaves wrongly, you don’t patch it: you tell it how it should behave (“urgent patients go first”), and the request agent rewrites its own brief, screens and checks.</p>
+</section>
+
+</div>
+
+<section class="replay" id="replay" aria-label="Recorded run">
+  <div class="wrap">
+    <h2>Watch a recorded run</h2>
+    <p>One English idea file for a small clinic: reception tablet, doctor’s PC, stock PC, patient’s phone and waiting-room display. Claude set it up from the idea in <b>65 s with 16 tool calls (about $0.41)</b>, then acted as the system on every button. Each reply below is what it actually did; only the waiting time between steps is shortened.</p>
+  </div>
+  <div class="rp">
+    <div class="rp-bar">
+      <button type="button" class="btn" id="rpPrev" aria-label="Previous step">◀</button>
+      <button type="button" class="btn primary" id="rpPlay">▶ Play</button>
+      <button type="button" class="btn" id="rpNext" aria-label="Next step">▶</button>
+      <ol class="rp-dots" id="rpDots" aria-label="Steps"></ol>
+    </div>
+    <div class="rp-cap" id="rpCap" aria-live="polite"></div>
+    <div class="rp-real" id="rpReal" hidden></div>
+    <div class="kface focus" id="rpStage"><p class="muted">Loading the recorded run…</p></div>
+  </div>
+  <div class="wrap">
+    <div class="stat">
+      <div><b>65 s</b><span>setup from the idea · 16 tool calls · about $0.41</span></div>
+      <div><b>7.2–13.8 s</b><span>per button press · 1–3 tool calls · $0.06–0.12</span></div>
+      <div><b>26 s</b><span>a request that changed two screens and the brief</span></div>
+    </div>
+    <p class="small muted">Recorded on an M1 Max through Claude Code: Claude Sonnet 5.5 for setup and requests, Claude Haiku 5.5 for button presses. The screens are drawn by the same renderer the tool uses. The raw recording is <a href="replay.json">replay.json</a>.</p>
+  </div>
+</section>
+
+<div class="wrap">
+
+<section>
+  <h2>“Can this really be built?”</h2>
+  <p>A prototype where the LLM does everything is dangerously convincing. So during setup the LLM also estimates, for every action, how a shippable version would do it — ordinary <span class="tag code">code</span>, a <span class="tag model">model</span>, an outside <span class="tag service">service</span>, or <span class="tag notyet">not yet</span> possible — with an error rate and a delay. Flip <b>Ideal → Existing tech</b> and the system behaves that way: late, sometimes wrong, sound leaking past the earphones.</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Action (clinic, from the run above)</th><th>How a real version would do it</th><th>Errors</th><th>Delay</th></tr></thead>
+    <tbody>
+      <tr><td>Check in</td><td><ul class="parts">
+        <li><span class="tag code">code</span>number, time, status</li>
+        <li><span class="tag model">model</span>urgency from symptoms, conditions, age</li>
+        <li><span class="tag code">code</span>wait estimate</li>
+        <li><span class="tag model">model</span>rewrite the waiting-room notice</li></ul></td><td class="num">10%</td><td class="num">2.5 s</td></tr>
+      <tr><td>Send interview</td><td><ul class="parts">
+        <li><span class="tag model">model</span>summary, cautions, notes for the doctor</li>
+        <li><span class="tag model">model</span>re-judge urgency</li></ul></td><td class="num">12%</td><td class="num">4.0 s</td></tr>
+      <tr><td>Prescribe</td><td><ul class="parts">
+        <li><span class="tag model">model</span>drug, dose, days from the draft</li>
+        <li><span class="tag service">service</span>allergy and interaction check</li>
+        <li><span class="tag code">code</span>reduce stock, reorder below minimum</li></ul></td><td class="num">10%</td><td class="num">3.5 s</td></tr>
+      <tr><td>To billing</td><td><ul class="parts">
+        <li><span class="tag code">code</span>status</li>
+        <li><span class="tag model">model</span>amount and breakdown</li></ul></td><td class="num">20%</td><td class="num">3.0 s</td></tr>
+      <tr><td>Cancel booking</td><td><ul class="parts"><li><span class="tag code">code</span>status, notice</li></ul></td><td class="num">3%</td><td class="num">0.3 s</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="small muted">After you have tried it, kuron turns what the system actually did into a spec — data, screens, golden examples taken from real tool calls, this table — and an implementation plan for a coding agent.</p>
+</section>
+
+<section>
+  <h2>Where it fits</h2>
+  <p>UI and app generators (Lovable, v0, Figma Make…) build the screens and the code behind them, and prototypes usually fake the judgement with fixed data. kuron builds the <em>behaviour</em>: the face stays minimal, while the judgement, the data and the hand-offs between roles really happen.</p>
+  <div class="cols">
+    <div>
+      <h3>Good for</h3>
+      <ul>
+        <li>Ideas whose value is a judgement — triage, recommendations, re-planning, estimates, drafted messages</li>
+        <li>Workflows across roles and devices — run a whole clinic day and see where people get stuck</li>
+        <li>Ideas that depend on technology or integrations that don’t exist yet — try the experience first</li>
+        <li>Showing an idea and changing it while you talk</li>
+        <li>Deciding whether to build, and what will be expensive</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Not for</h3>
+      <ul>
+        <li>Pixel-level UI design — the face is deliberately minimal</li>
+        <li>Production — about 10 s and a few cents per action, and results vary slightly between runs</li>
+        <li>Anything needing an instant reaction (games, fine real-time audio)</li>
+        <li>Bulk, exact data processing</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="try">
+  <h2>Try it</h2>
+  <h3>In your browser</h3>
+  <p><a href="https://claude.ai/artifact/UMMbf2FcV3ULi6d5WaW1yp">Open kuron on claude.ai</a>. It starts with the clinic above already set up; press any button, ask for a change, flip to existing tech, or write your own idea. It runs on your own Claude account (you are asked once), so you need to be signed in to claude.ai. The browser version has no microphone and runs timers when you press them.</p>
+  <h3>On your machine</h3>
+  <p>Needs Node.js 20+ and <a href="https://claude.com/claude-code">Claude Code</a> (logged in). No npm dependencies.</p>
+  <pre>git clone https://github.com/Ag3497120/kuron
+cd kuron
+node bin/kuron.js dev examples     # http://127.0.0.1:4870/</pre>
+  <p>Pick an example — a task list, an IoT fridge with a phone app, a sales deal desk, earphones that let only important sounds through — or press <b>+ New</b> and write your own idea in one line. Each example sets itself up the first time you open it (about a minute).</p>
+  <h3>Any LLM</h3>
+  <p><code>--preset local</code> runs everything on <a href="https://ollama.com">Ollama</a> with tool calling instead of Claude. The tools are a plain MCP server, so any MCP client can drive the same system: <code>node bin/kuron.js hands --url http://127.0.0.1:4870</code>.</p>
+</section>
+
+<footer>
+  kuron is MIT-licensed · <a href="https://github.com/Ag3497120/kuron">github.com/Ag3497120/kuron</a>
+</footer>
+
+</div>
+<script src="face.js"></script>
+<script src="replay.js"></script>
+</body>
+</html>

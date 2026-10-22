@@ -1,0 +1,137 @@
+<title>kuron</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: a workbench — the running system fills the stage, the record of what Claude did sits beside it. */
+:root{
+  --bg:#f4f5f8; --panel:#ffffff; --ink:#14161b; --ink-2:#4f5666; --ink-3:#7f8696; --line:#e0e3ea;
+  --accent:#2f5bd3; --accent-soft:rgba(47,91,211,.08); --good:#1f7a4d; --bad:#b4372b; --warn:#9a6410;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Noto Sans JP",sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#101217; --panel:#171a21; --ink:#e6e8ee; --ink-2:#a9afbf; --ink-3:#767c8d; --line:#2a2e39;
+  --accent:#7c9cff; --accent-soft:rgba(124,156,255,.1); --good:#58c48b; --bad:#ff7b6e; --warn:#e2a84d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101217; --panel:#171a21; --ink:#e6e8ee; --ink-2:#a9afbf; --ink-3:#767c8d; --line:#2a2e39;
+  --accent:#7c9cff; --accent-soft:rgba(124,156,255,.1); --good:#58c48b; --bad:#ff7b6e; --warn:#e2a84d; color-scheme:dark}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:13.5px/1.55 var(--sans)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.top{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-weight:700;letter-spacing:.04em}
+#sysName{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:28ch}
+.top .grow{flex:1 1 0}
+select,.btn{border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:5px 11px;font-size:13px;color:var(--ink)}
+select{max-width:220px}
+.btn{cursor:pointer}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.primary{background:var(--ink);border-color:var(--ink);color:var(--panel)}
+.btn.small{padding:2px 9px;font-size:12px}
+.btn.danger{border-color:var(--bad);color:var(--bad)}
+#btnReality[aria-pressed="true"]{border-color:var(--warn);color:var(--warn)}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 380px;min-height:calc(100vh - 54px)}
+.stagecol{display:flex;flex-direction:column;min-width:0;padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:16px;gap:12px;position:relative}
+.banner{padding:8px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent);font-size:13px}
+.hint{color:var(--ink-3);font-size:12px;margin:0}
+.reality{padding:10px 14px;border:1px solid var(--warn);border-radius:10px;background:color-mix(in srgb,var(--warn) 7%,var(--panel));font-size:13px}
+.reality p{margin:4px 0}
+.tablewrap{overflow-x:auto;max-height:300px;margin-top:6px}
+.reality table{border-collapse:collapse;width:100%;font-size:12px}
+.reality th,.reality td{text-align:left;vertical-align:top;padding:4px 8px;border-bottom:1px solid var(--line)}
+.reality .num{font-family:var(--mono);white-space:nowrap}
+.built{white-space:nowrap;font-weight:600}
+.built-code{color:var(--good)} .built-model{color:var(--accent)} .built-service{color:var(--warn)} .built-not_yet{color:var(--bad)}
+.timers{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px;color:var(--ink-2)}
+#stage{padding-block:8px}
+.reqbar{display:flex;gap:6px;position:sticky;bottom:0;background:var(--bg);padding-block:8px}
+.reqbar input{flex:1;min-width:0;border:1px solid var(--line);border-radius:7px;background:var(--panel);padding:7px 11px}
+.overlay{position:absolute;inset:0;background:color-mix(in srgb,var(--bg) 82%,transparent);display:grid;place-content:center;justify-items:center;gap:8px;text-align:center;padding:24px;z-index:5}
+.spin{width:30px;height:30px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.spin{animation-duration:3s}}
+.mono{font-family:var(--mono)} .dim{color:var(--ink-3);max-width:46ch}
+.side{border-left:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;min-width:0;max-height:calc(100vh - 54px);position:sticky;top:0}
+.tabs{display:flex;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:0;background:transparent;padding:9px 12px;font-size:12.5px;color:var(--ink-2);border-bottom:2px solid transparent;white-space:nowrap;cursor:pointer}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink);font-weight:600}
+#pane{flex:1;overflow:auto;padding:12px 14px;min-height:0;display:grid;gap:10px;align-content:start}
+#pane h3{font-size:12px;letter-spacing:.06em;color:var(--ink-3);margin:6px 0 0;font-weight:600;text-transform:uppercase}
+pre.code{margin:0;font:12px/1.5 var(--mono);white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:8px 10px;max-height:60vh;overflow:auto}
+.item{border-top:1px solid var(--line);padding-top:9px;display:grid;gap:4px}
+.item:first-child{border-top:0;padding-top:0}
+.h{display:flex;gap:8px;align-items:baseline;justify-content:space-between}
+.t{font:11.5px var(--mono);color:var(--ink-3);overflow-wrap:anywhere}
+.steps{margin:0;padding-left:1.3em;color:var(--ink-2);font:11.5px/1.5 var(--mono);overflow-wrap:anywhere}
+.reply{margin:0}
+.note{color:var(--ink-3);font-size:12.5px;margin:0}
+.ok{color:var(--good)} .ng{color:var(--bad)}
+.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:grid;place-items:center;z-index:10;padding:16px}
+.modal form{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;width:min(600px,100%);display:grid;gap:10px}
+.modal label{font-weight:600}
+.modal textarea{border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:10px;resize:vertical;font-size:14px}
+#ideas{display:flex;flex-wrap:wrap;gap:6px}
+#ideas button{font-size:12px}
+.modal .end{justify-content:flex-end}
+@media (max-width:980px){.main{grid-template-columns:minmax(0,1fr)} .side{border-left:0;border-top:1px solid var(--line);max-height:none;position:static} .stagecol{padding-right:max(16px,env(safe-area-inset-right,0px))} #pane{max-height:70vh}}
+/*@face.css*/
+</style>
+
+<header class="top">
+  <span class="brand">kuron</span>
+  <span id="sysName">…</span>
+  <select id="systems" aria-label="System"></select>
+  <span class="grow"></span>
+  <button type="button" class="btn primary" id="btnNew" data-t="newIdea"></button>
+  <button type="button" class="btn" id="btnReality" aria-pressed="false"></button>
+  <button type="button" class="btn" id="btnRestart" data-t="restart"></button>
+  <select id="lang" aria-label="Language"><option value="en">English</option><option value="ja">日本語</option></select>
+</header>
+
+<main class="main">
+  <section class="stagecol">
+    <div class="banner" id="banner" role="status" hidden></div>
+    <p class="hint" id="hint"></p>
+    <section class="reality" id="reality" hidden></section>
+    <div class="timers" id="timers" hidden></div>
+    <div class="kface" id="stage"></div>
+    <form class="reqbar" id="reqForm">
+      <label for="reqText" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)" data-t="reqApply"></label>
+      <input id="reqText" autocomplete="off" data-tph="reqPh">
+      <button type="submit" class="btn primary" id="reqApply" data-t="reqApply"></button>
+    </form>
+    <div class="overlay" id="setupOverlay" hidden></div>
+  </section>
+  <aside class="side">
+    <nav class="tabs" role="tablist">
+      <button type="button" role="tab" data-tab="runs" data-t="tabRuns"></button>
+      <button type="button" role="tab" data-tab="world" data-t="tabWorld"></button>
+      <button type="button" role="tab" data-tab="checks" data-t="tabChecks"></button>
+      <button type="button" role="tab" data-tab="reverse" data-t="tabReverse"></button>
+      <button type="button" role="tab" data-tab="idea" data-t="tabIdea"></button>
+    </nav>
+    <div id="pane"></div>
+  </aside>
+</main>
+
+<div class="modal" id="newSheet" hidden>
+  <form id="newForm">
+    <label for="newIdea" data-t="ideaLabel"></label>
+    <textarea id="newIdea" rows="5" data-tph="ideaPh"></textarea>
+    <div id="ideas">
+      <button type="button" class="btn small" data-idea="A to-do list that orders today's tasks by deadline and content, says why, and warns before something slips.">To-do triage</button>
+      <button type="button" class="btn small" data-idea="Sales reps paste what a prospect said; the desk scores the deal, predicts the objections and drafts the next email. One screen for reps, one for the sales manager.">Deal desk</button>
+      <button type="button" class="btn small" data-idea="A fridge that sees what is inside and when it expires, decides tonight's dinner, and sends missing items to the family's shopping list on their phones.">Dinner fridge</button>
+      <button type="button" class="btn small" data-idea="Earphones that let only the sounds that matter through (a car approaching, someone calling your name, a station announcement) and quiet everything else. Let me hear test street sounds with and without it.">Earphones that let important sounds through</button>
+      <button type="button" class="btn small" data-idea="Delivery riders on a rainy day: the dispatcher sees the orders and the weather, the system re-plans routes and tells customers the new time; riders see their next stop on a watch.">Rainy-day deliveries</button>
+    </div>
+    <div class="row end"><button type="button" class="btn" id="newCancel" data-t="cancel"></button><button type="submit" class="btn primary" data-t="create"></button></div>
+  </form>
+</div>
+
+<script type="application/json" id="preload">/*@preload*/</script>
+<script>/*@face.js*/</script>
+<script>/*@kuron.js*/</script>
+<script>/*@app.js*/</script>

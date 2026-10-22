@@ -6,3 +6,4 @@ node_modules/
 examples/判断の資産化.kuron
 examples/聞きたい音だけ残すイヤホン.kuron
 examples/聞き分けイヤホン.kuron
+web/dist/
