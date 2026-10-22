@@ -3,33 +3,33 @@
 import { createLive } from "/ui/live.js";
 const PRESENT = location.pathname === "/present";
 const I18N = {
-  ja: { newProgram: "＋ 新しく作る", newIdeaLabel: "作りたいものを一言で", newIdeaPh: "例: 来客の受付をして、担当者のスマホに知らせるシステム", newNote: "Claude（上流）がプログラムを書き、コンパイルして、そのまま使える状態で開きます。", create: "作る", writing: "Claude が書いています", readyIn: "一言から {s} 秒で使えるようになりました。触って確かめてください。", restored: "前回の続きから再開しました（{t}）", staleServer: "サーバーが古いコードのままです。ターミナルで止めて、起動し直してください。", ideal: "空論", existing: "既存技術", realityTitle: "既存の技術で作った場合", realityNone: "見積もりがありません。", rLatency: "音の遅れ", rLeak: "漏れて直接届く音", rDelay: "判断の遅れ", rError: "判断の誤り", rInterval: "判断の間隔",
+  ja: { newProgram: "＋ 新しく作る", newIdeaLabel: "作りたいものを一言で", newIdeaPh: "例: 来客の受付をして、担当者のスマホに知らせるシステム", newNote: "Claude（上流）がプログラムを書き、コンパイルして、そのまま使える状態で開きます。", create: "作る", writing: "Claude が書いています", readyIn: "一言から {s} 秒で使えるようになりました。触って確かめてください。", restored: "前回の続きから再開しました（{t}）", staleServer: "サーバーが古いコードのままです。ターミナルで止めて、起動し直してください。", ideal: "空論", existing: "既存技術", realityTitle: "既存の技術で作った場合", realityNone: "見積もりがありません。", rLatency: "音の遅れ", rLeak: "漏れて直接届く音", rDelay: "判断の遅れ", rError: "判断の誤り", rInterval: "判断の間隔", rIntent: "意図", rPart: "中でやること", rBuilt: "作り方", built: { code: "普通のコード", model: "モデルが必要", service: "外部サービス", not_yet: "今は無理" },
     lvThinking: "LLM が判断しています…", lvDone: "判断しました", lvNoPicture: "まだ映像がありません。カメラを使うか画像で試してください。", lvAuto: "自動", lvUseCamera: "カメラを使う", lvUseImage: "画像で試す", lvLook: "見せて判断", lvCameraHint: "映像は判断のためだけに LLM に渡します。", lvCamera: "カメラ",
     lvUseMic: "マイクを使う", lvSend: "いまの音で判断", lvMic: "マイク", lvPlaySounds: "試す音を流す", lvSounds: "試す音", lvNoSounds: "試す音がまだありません。試す音を作る動きを実行してください。",
     lvFindOutputs: "出力先を探す", lvOutput: "出力", lvNoSink: "このブラウザでは出力先を選べません。OS の出力をイヤホンにしてください。", lvProcOn: "処理あり", lvProcOff: "処理なし（そのまま）", lvOutputTitle: "イヤホン・スピーカー", lvConnect: "イヤホンを接続して、出力先から選んでください。", lvSpeak: "読み上げ", lvNoDrawing: "図はまだありません。",
     newRun: "最初から動かす", runChecks: "検証する", present: "発表モード", requestLabel: "直したいこと", requestPh: "ここをこうしたい…（例: 優先度の理由も出して）", memo: "メモする", applyNow: "Claude に反映させる", memoFab: "要望をメモ", cancel: "やめる",
     tabState: "状態", tabTrace: "実行記録", tabCheck: "検証", tabReq: "要望", tabRev: "逆算", tabSrc: "ソース",
-    compiling: "コンパイル中", compiled: "コンパイル済み", compileFail: "コンパイル失敗", stage: { fields: "状態", items: "状態", initial: "初期値", screen: "画面", event: "動き", check: "検証" },
+    compiling: "準備中", compiled: "動いています", compileFail: "立ち上げに失敗", stage: { setup: "LLM がシステムを立ち上げ中" },
     cpu: "CPU 実行中", noState: "まだ動いていません。", noTraces: "まだ何も実行していません。ボタンを押すと、ここに CPU が実行した命令と状態の変化が出ます。",
     checksNone: "「## 確かめる」がありません。", checksRun: "検証を実行", checksRunning: "検証中…", pass: "合格", fail: "不合格",
     reqNone: "要望はまだありません。発表モードや下の欄からメモできます。", reqApply: "反映", reqStatus: { open: "未反映", working: "Claude が反映中", done: "反映済み" },
     upstreamBusy: "Claude（上流）が作業中", upstreamErr: "Claude（上流）でエラー",
     revMake: "逆算する（仕様・実行例・計画）", revNone: "まだ逆算していません。触って動きを確かめてから押すと、実行記録を正解例にした仕様と、作るための計画・プロンプトを Claude が書きます。", revPlan: "計画", revSpec: "仕様",
-    save: "保存してコンパイル", srcNote: "普段は Claude が書き換えます。手で直しても構いません。", warnings: "コンパイラからの注意", reads: "読む", writes: "書く", inputs: "入力",
+    save: "アイデアを保存", srcNote: "アイデアを書き換えたら「最初から動かす」で、LLM がシステムを立ち上げ直します。", briefTitle: "ふるまいのメモ（LLM が書いたもの）", ideaTitle: "アイデア", saved: "保存しました", warnings: "コンパイラからの注意", reads: "読む", writes: "書く", inputs: "入力",
     ms: "ミリ秒", empty: "なし", screenOf: "画面", sec: "秒", noticeLabel: "知らせ", error: "エラー", noLLM: "ローカル LLM に繋がりません" },
-  en: { newProgram: "+ New", newIdeaLabel: "Describe what you want in one line", newIdeaPh: "e.g. a reception desk that notifies the host on their phone", newNote: "Claude (upstream) writes the program, compiles it and opens it ready to use.", create: "Create", writing: "Claude is writing", readyIn: "Usable {s}s after the idea. Try it.", restored: "Resumed where you left off ({t})", staleServer: "The server is running old code. Stop it in the terminal and start it again.", ideal: "Ideal", existing: "Existing tech", realityTitle: "If built with existing technology", realityNone: "No estimate.", rLatency: "Sound delay", rLeak: "Sound leaking in", rDelay: "Decision delay", rError: "Wrong decisions", rInterval: "Decision interval",
+  en: { newProgram: "+ New", newIdeaLabel: "Describe what you want in one line", newIdeaPh: "e.g. a reception desk that notifies the host on their phone", newNote: "Claude (upstream) writes the program, compiles it and opens it ready to use.", create: "Create", writing: "Claude is writing", readyIn: "Usable {s}s after the idea. Try it.", restored: "Resumed where you left off ({t})", staleServer: "The server is running old code. Stop it in the terminal and start it again.", ideal: "Ideal", existing: "Existing tech", realityTitle: "If built with existing technology", realityNone: "No estimate.", rLatency: "Sound delay", rLeak: "Sound leaking in", rDelay: "Decision delay", rError: "Wrong decisions", rInterval: "Decision interval", rIntent: "Intent", rPart: "What it does", rBuilt: "Built with", built: { code: "ordinary code", model: "needs a model", service: "outside service", not_yet: "not possible yet" },
     lvThinking: "The LLM is deciding…", lvDone: "Decided", lvNoPicture: "No picture yet. Use the camera or try an image.", lvAuto: "Auto", lvUseCamera: "Use camera", lvUseImage: "Try an image", lvLook: "Show and decide", lvCameraHint: "The picture is only given to the LLM to decide.", lvCamera: "Camera",
     lvUseMic: "Use microphone", lvSend: "Decide on this sound", lvMic: "Microphone", lvPlaySounds: "Play test sounds", lvSounds: "Test sounds", lvNoSounds: "No test sounds yet. Run the action that makes them.",
     lvFindOutputs: "Find outputs", lvOutput: "Output", lvNoSink: "This browser cannot choose an output. Set your earphones as the system output.", lvProcOn: "Processing on", lvProcOff: "Processing off (as is)", lvOutputTitle: "Earphones / speakers", lvConnect: "Connect your earphones and choose them as the output.", lvSpeak: "Speak", lvNoDrawing: "No picture yet.",
     newRun: "Restart", runChecks: "Run checks", present: "Present", requestLabel: "What should change", requestPh: "I'd like this to… (e.g. show why it chose the priority)", memo: "Note it", applyNow: "Ask Claude to apply", memoFab: "Note a request", cancel: "Cancel",
     tabState: "State", tabTrace: "Executions", tabCheck: "Checks", tabReq: "Requests", tabRev: "Reverse", tabSrc: "Source",
-    compiling: "Compiling", compiled: "Compiled", compileFail: "Compile failed", stage: { fields: "state", items: "state", initial: "initial data", screen: "screens", event: "actions", check: "checks" },
+    compiling: "Preparing", compiled: "Running", compileFail: "Setup failed", stage: { setup: "the LLM is setting the system up" },
     cpu: "CPU running", noState: "Not running yet.", noTraces: "Nothing has run yet. Press a button: the instructions the CPU executed and the state changes appear here.",
     checksNone: "There is no Checks section.", checksRun: "Run checks", checksRunning: "Running checks…", pass: "pass", fail: "fail",
     reqNone: "No requests yet. Note them in presentation mode or in the bar below.", reqApply: "Apply", reqStatus: { open: "open", working: "Claude is applying", done: "applied" },
     upstreamBusy: "Claude (upstream) is working", upstreamErr: "Claude (upstream) failed",
     revMake: "Reverse (spec, examples, plan)", revNone: "Not reversed yet. Try the system first; then Claude writes a spec that uses the recorded executions as golden examples, plus the build plan and prompts.", revPlan: "Plan", revSpec: "Spec",
-    save: "Save and compile", srcNote: "Claude normally edits this. Editing by hand is fine too.", warnings: "Compiler notes", reads: "reads", writes: "writes", inputs: "inputs",
+    save: "Save the idea", srcNote: "After changing the idea, press Restart and the LLM sets the system up again.", briefTitle: "Brief (written by the LLM)", ideaTitle: "Idea", saved: "Saved", warnings: "Compiler notes", reads: "reads", writes: "writes", inputs: "inputs",
     ms: "ms", empty: "none", screenOf: "screen", sec: "s", noticeLabel: "notice", error: "Error", noLLM: "Cannot reach the local LLM" },
 };
 let lang = (() => { try { return localStorage.getItem("kuron.lang") } catch { return null } })() || (navigator.language || "ja").slice(0, 2);
@@ -132,8 +132,9 @@ function comp(c, ctx) {
       const ul = el("ul", "c-list");
       rows.forEach(r => {
         const li = el("li");
-        const parts = (c.row && c.row.length ? c.row : [{ kind: "text", text: "{value}" }]).map(x => comp(x, { ...ctx, row: r, list: c.source })).filter(Boolean);
-        if (!parts.length || (typeof r.item !== "object" && !(c.row || []).length)) li.append(el("span", "c-text", show(r.item))); else li.append(...parts);
+        // no row parts defined: show the item as it is (every property but its id)
+        if (!(c.row || []).length) li.append(el("span", "c-text", r.item && typeof r.item === "object" ? Object.entries(r.item).filter(([k]) => k !== "id").map(([k, v]) => k + ": " + show(v)).join(" · ") : show(r.item)));
+        else li.append(...c.row.map(x => comp(x, { ...ctx, row: r, list: c.source })).filter(Boolean));
         ul.append(li);
       });
       return ul;
@@ -150,15 +151,15 @@ function comp(c, ctx) {
 /* ---------- actions ---------- */
 async function press(c, ctx) {
   if (!c.action) { if (c.goto) go(ctx.dev, c.goto); return }
-  const ev = ST.ir.events[c.action] || { inputs: [] };
   const f = forms[ctx.screen] || {};
-  const inputs = Object.fromEntries(Object.entries(f).filter(([k]) => !ev.inputs.length || ev.inputs.includes(k)));
+  const inputs = { ...f };
   const t0 = Date.now(); busy[ctx.dev] = { t0, action: c.action }; renderDevice(ctx.dev);
   const tick = setInterval(() => { const n = document.querySelector(`[data-dev="${CSS.escape(ctx.dev)}"] .cpubusy em`); if (n) n.textContent = ((Date.now() - t0) / 1000).toFixed(1) + T("sec") }, 100);
   try {
-    const r = await api("/api/act", { sid, action: c.action, inputs, list: ctx.row ? ctx.list : "", index: ctx.row ? ctx.row.index : -1 });
+    const item = ctx.row && ctx.row.item && typeof ctx.row.item === "object" ? { collection: ctx.list, ...ctx.row.item } : null;
+    const r = await api("/api/event", { intent: c.action, screen: ctx.screen, item, inputs });
     state = r.state;
-    for (const k of ev.inputs.length ? ev.inputs : Object.keys(f)) if (k in f && !(document.querySelector(`select[data-name="${CSS.escape(k)}"]`))) f[k] = "";
+    for (const k of Object.keys(f)) if (!(document.querySelector(`select[data-name="${CSS.escape(k)}"]`))) f[k] = "";
     if (r.notice) toast(ctx.dev, r.notice);
     if (c.goto) cur[ctx.dev] = c.goto;
   } catch (e) { toast(ctx.dev, T("error") + ": " + e.message) }
@@ -269,10 +270,10 @@ function renderPane() {
     }).catch(() => { });
   }
   if (tab === "src") {
-    p.append(el("p", "note", T("srcNote")));
-    if (ST.warnings && ST.warnings.length) { p.append(el("h3", "", T("warnings"))); ST.warnings.forEach(w => p.append(el("div", "warn", w.code + " · " + (w.screen || "") + " · " + (w.name || "")))) }
+    p.append(el("h3", "", T("briefTitle")), el("pre", "code", ST.brief || "—"));
+    p.append(el("h3", "", T("ideaTitle")), el("p", "note", T("srcNote")));
     const ta = el("textarea", "src"); ta.value = ST.text; ta.spellcheck = false; p.append(ta);
-    const b = el("button", "b", T("save")); b.type = "button"; b.onclick = () => api("/api/source", { text: ta.value }); p.append(b);
+    const b = el("button", "b", T("save")); b.type = "button"; b.onclick = () => api("/api/source", { text: ta.value }).then(() => banner(T("saved"))); p.append(b);
   }
 }
 function upstreamLine(p) {
@@ -327,6 +328,12 @@ function renderReality() {
   if (!R) { p.append(el("p", "note", T("realityNone"))); return }
   p.append(el("p", "", R.summary));
   const ul = el("ul"); (R.items || []).forEach(x => { const li = el("li"); li.append(el("b", "", x.part + ": "), document.createTextNode(x.existing + " → " + x.effect)); ul.append(li) }); p.append(ul);
+  if ((R.intents || []).length) {
+    const tw = el("div", "c-table"), tb = el("table"), hr = el("tr");
+    [T("rIntent"), T("rPart"), T("rBuilt"), T("rError"), T("rDelay")].forEach(h => hr.append(el("th", "", h))); tb.append(hr);
+    for (const x of R.intents) x.parts.forEach((q, i) => { const tr = el("tr"); tr.append(el("td", "", i ? "" : x.intent), el("td", "", q.what + " — " + q.detail), el("td", "built-" + q.builtWith, T("built." + q.builtWith)), el("td", "", i ? "" : Math.round(x.errorRate * 100) + "%"), el("td", "", i ? "" : x.delayMs + "ms")); tb.append(tr) });
+    tw.append(tb); p.append(tw);
+  }
   p.append(el("p", "dim", [T("rLatency") + " " + R.audioLatencyMs + "ms", T("rLeak") + " " + Math.round(R.leak * 100) + "%", T("rDelay") + " " + R.decisionDelayMs + "ms", T("rError") + " " + Math.round(R.errorRate * 100) + "%", T("rInterval") + " " + R.minIntervalSec + T("sec")].join(" · ")));
 }
 $("btnReality").onclick = () => api("/api/reality", { on: !(ST && ST.realityOn) }).catch(e => banner(e.message));
@@ -342,7 +349,7 @@ $("newForm").onsubmit = async e => {
 async function reloadProgram() {
   ST = await api("/api/status"); sid = ST.sid; checks = ST.checks; state = null; traces = [];
   Object.keys(forms).forEach(k => delete forms[k]); Object.keys(cur).forEach(k => delete cur[k]);
-  if (sid) state = (await api("/api/state?sid=" + sid).catch(() => ({ state: null }))).state;
+  state = ST.state || null;
   traces = (await api("/api/traces")).traces;
   renderAll();
 }
@@ -374,6 +381,9 @@ async function boot() {
     const ev = JSON.parse(m.data);
     if (ev.type === "compile") { if (ev.status) { ST = ev.status; if (ST.sid && ST.sid !== sid) sid = ST.sid; if (sid) state = (await api("/api/state?sid=" + sid).catch(() => ({ state }))).state; renderAll() } else { ST.compiling = true; ST.stage = ev.stage; renderTop() } }
     if (ev.type === "trace") { traces.push(ev.trace); if (traces.length > 100) traces.shift(); if (tab === "trace") renderPane() }
+    if (ev.type === "world" && ev.status) { const keep = ST.upstream; ST = ev.status; ST.upstream = keep; state = ST.state; if (!Object.keys(busy).length) renderStage(); renderTop(); if (tab === "state" || tab === "src") renderPane(); return }
+    if (ev.type === "notice") { banner(ev.text); return }
+    if (ev.type === "speak") { live.say(ev.text); return }
     if (ev.type === "state" && ev.sid === sid) { state = ev.state; if (!Object.keys(busy).length) renderStage(); if (tab === "state") renderPane() }
     if (ev.type === "session") { sid = ev.sid; state = ev.state; renderStage(); renderPane() }
     if (ev.type === "requests") { ST.requests = ev.requests; if (tab === "req") renderPane() }

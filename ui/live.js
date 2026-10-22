@@ -226,6 +226,7 @@ export function createLive({ api, getState, getSid, T, onResult, onError, lang }
   }
 
   return {
+    say,
     render(c, ctx, state) {
       const key = ctx.screen + ":" + ctx.index;
       if (c.kind === "camera") return camera(c, key);
