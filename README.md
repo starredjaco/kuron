@@ -20,6 +20,40 @@ button / timer / camera / sound ─▶ event agent (LLM with hands) ─▶ reads
 
 See [docs/DESIGN.md](docs/DESIGN.md) for the design and the line the code never crosses.
 
+## Where it fits
+
+UI generators build *the face and the code behind it*. kuron builds *the behaviour*: the face stays minimal, while the
+judgement, the data and the hand-offs between roles really work.
+
+| | UI / app generators (Lovable, v0, Figma Make…) | kuron |
+|---|---|---|
+| What you get | Screens and application code | Minimal screens; the LLM performs the behaviour live |
+| Judgement and back-end logic | Must be coded; prototypes usually fake it with fixed data | The LLM actually decides (triage, recommendations, routing, estimates, drafted messages) |
+| Integrations and technology that does not exist yet | Nothing works until it is connected | The LLM plays that part convincingly |
+| Several roles and devices | Usually built screen by screen | Reception, doctor, patient and a waiting-room display share one world |
+| Changing it | Edit the code | Say "this should…"; the LLM changes itself |
+| Can it really be built? | You find out by building it | Every intent is estimated as ordinary code / a model / an outside service / not possible yet, and the existing-tech switch lets you feel it |
+| What you take away | The code | A spec, golden examples of what the system actually did, and an implementation plan |
+
+**Good uses**
+
+1. **Ideas whose value is a judgement** — triage, recommendations, re-planning deliveries, estimates, follow-up messages.
+   An ordinary prototype has the screens but fakes the judgement; here you can find out whether the judgement helps.
+2. **Workflows across roles and devices** — run a whole clinic day (reception → interview → doctor → billing → display)
+   within minutes and see where people get stuck.
+3. **Things that depend on missing technology or integrations** — drug-interaction checks, a camera that judges
+   composition, earphones that let only important sounds through: try the experience before building any of it.
+4. **Showing an idea and changing it on the spot** — sales, pre-sales, new-business proposals: "Is this what you mean?",
+   and the request is applied while you talk.
+5. **Deciding whether to build and what will be expensive** — the per-intent estimate shows which parts need a model, a
+   service or do not exist yet; if you go ahead, the reverse spec and golden examples go straight to a coding agent.
+
+**Not a good fit**: pixel-level UI design (the face is minimal); production use (about 10 s and some cost per action,
+results vary slightly); anything needing instant reaction (games, fine real-time audio control); bulk, exact data processing.
+
+kuron is not a tool for building; it is a tool for finding out, **before building**, whether an idea is useful and what
+makes it hard — it sits in front of the tools that write code.
+
 ## The line
 
 | Code contains | Code never contains |
