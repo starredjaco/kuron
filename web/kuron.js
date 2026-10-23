@@ -168,6 +168,21 @@
   }
   const handsFor = role => HANDS.filter(h => h.roles.includes(role));
 
+  // The artifact runtime refuses tool schemas nested deeper than 8 levels. Parts deeper than that are shown to
+  // Claude as a one-line shape instead; the full schema still checks every call and answers in words.
+  const depth = v => v && typeof v === "object" ? 1 + Math.max(0, ...Object.values(v).map(depth)) : 0;
+  const sig = s => !s || typeof s !== "object" ? "any" : s.enum ? s.enum.join("|") : s.type === "array" ? [sig(s.items)]
+    : s.type === "object" && s.properties ? Object.fromEntries(Object.entries(s.properties).map(([k, v]) => [k + ((s.required || []).includes(k) ? "" : "?"), sig(v)])) : s.type || "any";
+  const collapse = s => ({ type: s.type, description: (s.description ? s.description + " — " : "") + "shape: " + JSON.stringify(sig(s)) });
+  function shallow(s, budget = 7) {
+    if (depth(s) <= budget) return s;
+    if (budget <= 3) return collapse(s);
+    const out = { ...s };
+    if (s.properties) out.properties = Object.fromEntries(Object.entries(s.properties).map(([k, v]) => [k, shallow(v, budget - 2)]));
+    if (s.items) out.items = shallow(s.items, budget - 1);
+    return depth(out) <= budget ? out : collapse(s);
+  }
+
   /* ---------- turns ---------- */
   const COMMON = `You are not writing software. You ARE the system: everything it does happens because you do it, through the tools (your hands). Never write code. Write everything a person sees in the system's language. Call independent tools together in the same round.`;
   const ROLE_PROMPTS = {
@@ -202,7 +217,7 @@ A person tried the system and asked for a change (below). Make the change throug
     if (role === "event" && reality) prompt += `\nTHIS RUN SIMULATES THE EXISTING-TECHNOLOGY VERSION, not the ideal one. Find the estimate for this event's intent below and behave as that implementation would: parts built with ordinary code are exact; parts that need a model go wrong about as often and in the way it says; services answer as described; parts that are not possible yet do not work (say so instead of doing them). If no entry fits, use the general note.\nGENERAL: ${reality.cpuNote}\nPER INTENT: ${JSON.stringify(reality.intents || [])}`;
     prompt += "\n\n" + (role === "setup" ? `IDEA:\n${message}` : contextText(world, message));
     const calls = [], turn = { sound };
-    const tools = handsFor(role).map(h => ({ name: h.name, description: h.description, inputSchema: h.input,
+    const tools = handsFor(role).map(h => ({ name: h.name, description: h.description, inputSchema: shallow(h.input),
       execute: async input => {
         const a = input && typeof input === "object" ? input : {};
         const problems = shapeProblems(h.input, a);
@@ -302,5 +317,5 @@ ${clip(spec, 200000)}`, { modelTier: "default", cache: false, signal, onText });
     return r.text.trim() + "\n";
   }
 
-  window.Kuron = { World, HANDS, handsFor, shapeProblems, runTurn, setup, eventMessage, runChecks, specMd, writePlan, sampler, missingParts, langName };
+  window.Kuron = { World, HANDS, handsFor, shapeProblems, shallow, depth, runTurn, setup, eventMessage, runChecks, specMd, writePlan, sampler, missingParts, langName };
 })();
