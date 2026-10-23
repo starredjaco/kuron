@@ -4,7 +4,7 @@
 
 **An LLM behaves as the whole system. Code only gives it hands and a minimal face.**
 
-[![An airline disruption desk set up by kuron: departure board, crew tablet, operations, gate agent and passenger phone](docs/demo.gif)](https://kuron.pages.dev/demo.mp4)
+[![An airline disruption desk set up by kuron: departure board, crew tablet, operations, gate agent and passenger phone](https://kuron.pages.dev/demo.gif)](https://kuron.pages.dev/demo.mp4)
 
 ▶ **[Watch the 2-minute demo](https://kuron.pages.dev/demo.mp4)**: a real screen recording of the browser version, then the same idea run
 through Claude Code step by step. Only the waiting is sped up; every reply is what Claude actually did.

@@ -28,7 +28,7 @@
     "bin/",
     "lib/",
     "ui/",
-    "examples/",
+    "examples/*.kuron",
     "docs/DESIGN.md",
     "docs/IDEAS.md",
     "LICENSE",

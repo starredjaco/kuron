@@ -58,7 +58,7 @@ async function main() {
   if (cmd === "try") {
     const from = join(dirname(fileURLToPath(import.meta.url)), "..", "examples"), to = resolve("kuron-examples");
     mkdirSync(to, { recursive: true });
-    for (const f of readdirSync(from).filter(f => f.endsWith(".kuron"))) if (!existsSync(join(to, f))) copyFileSync(join(from, f), join(to, f));
+    for (const f of readdirSync(from, { withFileTypes: true }).filter(e => e.isFile() && e.name.endsWith(".kuron")).map(e => e.name)) if (!existsSync(join(to, f))) copyFileSync(join(from, f), join(to, f));
     const { url } = await serve({ file: existsSync(join(to, "clinic.kuron")) ? join(to, "clinic.kuron") : null, dir: to, port, compileModel, cpuModel });
     console.log(`kuron: ${url}  (examples in ${to}; setup: ${compileModel}, events: ${cpuModel})\nEach example sets itself up the first time you open it (about a minute).`);
     return;
