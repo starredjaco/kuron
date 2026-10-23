@@ -28,7 +28,7 @@
   const matches = (v, want) => { const s = String(want ?? "").trim(); if (!s) return true; if (typeof v === "boolean") return v === (s.toLowerCase() === "true"); return String(v ?? "") === s };
 
   function createFace({ root, T, onPress = null, onLive = null, onError = () => { } }) {
-    let ir = null, state = null, busy = {}, highlight = null, readOnly = !onPress, R = null;
+    let ir = null, state = null, busy = {}, highlight = null, readOnly = !onPress, R = null, only = null;
     const cur = {}, forms = {}, toastT = {};
 
     function tpl(text, row) {
@@ -173,7 +173,7 @@
     }
     function render() {
       const focus = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.name;
-      root.textContent = ""; devices().forEach(d => root.append(frame(d))); restoreFocus(focus);
+      root.textContent = ""; devices().filter(d => !only || only.includes(d.key)).forEach(d => root.append(frame(d))); restoreFocus(focus);
     }
     function restoreFocus(name) { if (!name) return; const n = root.querySelector(`[data-name="${CSS.escape(name)}"]`); if (n) { n.focus({ preventScroll: true }); try { n.setSelectionRange(n.value.length, n.value.length) } catch { } } }
 
@@ -355,6 +355,8 @@
         if ("ir" in next) ir = next.ir; if ("state" in next) state = next.state;
         if ("busy" in next) busy = next.busy || {}; if ("highlight" in next) highlight = next.highlight;
         if ("screens" in next) Object.assign(cur, next.screens);
+        if ("only" in next) only = next.only;
+        if (next.forms) for (const [screen, values] of Object.entries(next.forms)) forms[screen] = { ...(forms[screen] || {}), ...values };
         render();
       },
       toast, say: t => live.say(t),

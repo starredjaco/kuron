@@ -2,6 +2,14 @@
 
 **An LLM behaves as the whole system. Code only gives it hands and a minimal face.**
 
+[![An airline disruption desk set up by kuron: departure board, crew tablet, operations, gate agent and passenger phone](docs/demo.gif)](https://kuron.pages.dev/demo.mp4)
+
+▶ **[Watch the 2-minute demo](https://kuron.pages.dev/demo.mp4)**: a real screen recording of the browser version, then the same idea run
+through Claude Code step by step. Only the waiting is sped up; every reply is what Claude actually did.
+
+**[Try it in your browser](https://claude.ai/artifact/UMMbf2FcV3ULi6d5WaW1yp)** (needs a claude.ai login; it runs on your own account) ·
+[Recorded run with every tool call](https://kuron.pages.dev/#replay)
+
 *Kūron* (空論) is Japanese for "armchair theory": an idea that only exists on paper. kuron makes such an idea — even one that
 would take ~50 hours to build — **appear built within minutes and usable by hand**, so you can judge whether it is worth
 building. Nothing is generated per idea: no application code, no grammar to satisfy. An LLM with hands sets the system up
@@ -77,6 +85,8 @@ Any MCP client can use the same hands: `kuron hands --url http://127.0.0.1:4870`
 ## Requirements
 
 Node.js 20+, [Claude Code](https://claude.com/claude-code) (logged in), and [Ollama](https://ollama.com) only for the local preset.
+The [browser version](https://claude.ai/artifact/UMMbf2FcV3ULi6d5WaW1yp) needs nothing but a claude.ai login (source in `web/`,
+built with `node tools/build-web.mjs`); it has no microphone and runs timers when you press them.
 
 ## Usage
 

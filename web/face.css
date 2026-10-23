@@ -16,7 +16,7 @@
 .kface button{cursor:pointer}
 .kface button:disabled{cursor:default}
 
-.kface .devw{margin:0;display:grid;gap:8px;justify-items:center;min-width:0;max-width:100%;transition:opacity .3s}
+.kface .devw{flex:none;margin:0;display:grid;grid-template-columns:minmax(0,1fr);gap:8px;justify-items:center;min-width:0;max-width:100%;transition:opacity .3s}
 .kface .devw figcaption{font-size:11.5px;color:var(--k-muted);letter-spacing:.05em}
 .kface.focus .devw:not(.active){opacity:.45}
 .kface.focus .devw.active{order:-1}

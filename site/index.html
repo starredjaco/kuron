@@ -93,6 +93,8 @@ button.btn{cursor:pointer;padding:6px 14px}
 .rp-real{background:var(--panel);border:1px solid var(--service);border-radius:10px;padding:12px 16px;font-size:14px}
 .rp-real p{margin:0 0 8px}
 #rpStage{min-height:300px}
+#demo{margin:28px 0 0;display:grid;gap:8px}
+#demo video{width:100%;border-radius:10px;border:1px solid var(--line);background:#000;display:block}
 footer{padding:32px 0 56px;border-top:1px solid var(--line);font-size:14px;color:var(--ink-3)}
 </style>
 </head>
@@ -104,10 +106,14 @@ footer{padding:32px 0 56px;border-top:1px solid var(--line);font-size:14px;color
   <h1>Instead of generating code, an LLM with tools acts as the app.</h1>
   <p class="lede">Write an idea in one line — even one that would take ~50 hours to build. Within about a minute it is running on minimal screens and you can use it by hand, so you can find out whether it is worth building. Nothing is generated per idea: the LLM sets the system up, then <em>is</em> the system on every action.</p>
   <div class="cta">
-    <a class="btn primary" href="#replay">Watch a recorded run</a>
+    <a class="btn primary" href="#demo">Watch the 2-minute demo</a>
     <a class="btn" href="https://claude.ai/artifact/UMMbf2FcV3ULi6d5WaW1yp">Try it in your browser</a>
     <a class="btn" href="https://github.com/Ag3497120/kuron">Source on GitHub</a>
   </div>
+  <figure id="demo">
+    <video controls muted playsinline preload="metadata" poster="demo.jpg" src="demo.mp4"></video>
+    <figcaption class="small muted">A real screen recording of the browser version, then the same idea run through Claude Code step by step. Only the waiting is sped up.</figcaption>
+  </figure>
 </header>
 
 <section>
