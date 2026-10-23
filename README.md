@@ -1,13 +1,13 @@
 # kuron
 
+**▶ [Try it in your browser](https://claude.ai/artifact/UMMbf2FcV3ULi6d5WaW1yp)** (needs a claude.ai login; it runs on your own account)
+
 **An LLM behaves as the whole system. Code only gives it hands and a minimal face.**
 
 [![An airline disruption desk set up by kuron: departure board, crew tablet, operations, gate agent and passenger phone](docs/demo.gif)](https://kuron.pages.dev/demo.mp4)
 
 ▶ **[Watch the 2-minute demo](https://kuron.pages.dev/demo.mp4)**: a real screen recording of the browser version, then the same idea run
 through Claude Code step by step. Only the waiting is sped up; every reply is what Claude actually did.
-
-**[Try it in your browser](https://claude.ai/artifact/UMMbf2FcV3ULi6d5WaW1yp)** (needs a claude.ai login; it runs on your own account) ·
 [Recorded run with every tool call](https://kuron.pages.dev/#replay)
 
 *Kūron* (空論) is Japanese for "armchair theory": an idea that only exists on paper. kuron makes such an idea — even one that
