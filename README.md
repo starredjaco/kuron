@@ -10,6 +10,15 @@
 through Claude Code step by step. Only the waiting is sped up; every reply is what Claude actually did.
 [Recorded run with every tool call](https://kuron.pages.dev/#replay)
 
+**On your machine, one command** (Node.js 20+ and a logged-in [Claude Code](https://claude.com/claude-code), or an API key — see
+[Any LLM](#any-llm)):
+
+```bash
+npx github:Ag3497120/kuron try
+```
+
+It copies the examples into `./kuron-examples` and opens them at http://127.0.0.1:4870/.
+
 *Kūron* (空論) is Japanese for "armchair theory": an idea that only exists on paper. kuron makes such an idea — even one that
 would take ~50 hours to build — **appear built within minutes and usable by hand**, so you can judge whether it is worth
 building. Nothing is generated per idea: no application code, no grammar to satisfy. An LLM with hands sets the system up
@@ -75,22 +84,39 @@ the LLM how it should behave (the request bar), and it changes itself.
 
 ## Any LLM
 
-| Turn | `--preset claude` (default) | `--preset local` |
+| Turn | `--preset claude` (default) | `--preset anthropic` | `--preset local` |
+|---|---|---|---|
+| Setup, requests, plans | `claude-sonnet-5-5` via Claude Code, hands as an MCP server | `claude-sonnet-5-5` via the Anthropic API | `qwen3.8:27b-mlx` via Ollama |
+| Button presses, timers | `claude-haiku-5-5` | `claude-haiku-5-5` | `qwen3.5:4b` |
+
+Or name any model with a provider prefix; every provider uses the same hands through its own tool calling:
+
+| Name | Runs on | Needs |
 |---|---|---|
-| Setup and requests | `claude-sonnet-5-5` via Claude Code, hands as an MCP server | `qwen3.8:27b-mlx` via Ollama tool calling |
-| Events | `claude-haiku-5-5` | `qwen3.5:4b` |
+| `claude-…` | Claude Code (`claude -p`) | a logged-in Claude Code |
+| `anthropic:<model>` | Anthropic API | `ANTHROPIC_API_KEY` |
+| `openai:<model>` | OpenAI, or any compatible server via `KURON_OPENAI_BASE_URL` | `OPENAI_API_KEY` |
+| `gemini:<model>` · `openrouter:<model>` · `groq:<model>` | that provider's OpenAI-compatible API | `GEMINI_API_KEY` · `OPENROUTER_API_KEY` · `GROQ_API_KEY` |
+| `lmstudio:<model>` | LM Studio on this machine | nothing |
+| anything else | Ollama on this machine | Ollama |
+
+```bash
+kuron try --compile-model openai:<model> --cpu-model openai:<smaller model>
+```
 
 Any MCP client can use the same hands: `kuron hands --url http://127.0.0.1:4870` (e.g. from Codex).
 
 ## Requirements
 
-Node.js 20+, [Claude Code](https://claude.com/claude-code) (logged in), and [Ollama](https://ollama.com) only for the local preset.
+Node.js 20+ and one of: [Claude Code](https://claude.com/claude-code) (logged in), an API key from a provider above, or
+[Ollama](https://ollama.com). No npm dependencies.
 The [browser version](https://claude.ai/artifact/UMMbf2FcV3ULi6d5WaW1yp) needs nothing but a claude.ai login (source in `web/`,
 built with `node tools/build-web.mjs`); it has no microphone and runs timers when you press them.
 
 ## Usage
 
 ```bash
+kuron try                         # copy the examples into ./kuron-examples and open them
 kuron dev .                       # dev UI at http://127.0.0.1:4870/ — every .kuron idea in the folder; "+ New" from one line
 kuron new "a clinic that …"       # write the idea and let the setup agent build it
 kuron check idea.kuron            # play the system's checks and judge them
@@ -120,6 +146,12 @@ as the system grows; the LLM reads more only when it needs to.
 
 `examples/` holds ideas from small (a task list) to multi-device (an IoT fridge with a phone app, a reception system),
 including real-world ones (earphones that let important sounds through, a camera that directs a remote photographer).
+
+## Share an idea
+
+kuron needs more ideas to be tested on, especially ones that break it. Add yours as `examples/<name>.kuron` in a pull
+request, or open an issue with what worked and what broke — the browser version's **Feedback** button does that for you.
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 

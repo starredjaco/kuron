@@ -84,4 +84,7 @@ behave like the shippable implementation (late, coarse, sometimes wrong) while t
 - **Claude** (default): `claude -p` with the hands as an MCP server (`--mcp-config`, only `mcp__kuron__*` allowed).
   Setup uses Sonnet, events use Haiku.
 - **Codex or any MCP client**: run `kuron hands` (MCP over stdio) against a running `kuron dev`.
+- **APIs**: the Anthropic API (`anthropic:<model>`) and any OpenAI-compatible API (`openai:`, `gemini:`, `openrouter:`,
+  `groq:`, `lmstudio:<model>`) through their own tool calling, the same hand definitions. `lib/llm.js` picks the provider
+  from the model name.
 - **Local**: Ollama tool calling, the same hand definitions.

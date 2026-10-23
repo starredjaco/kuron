@@ -72,6 +72,8 @@ pre.code{margin:0;font:12px/1.5 var(--mono);white-space:pre-wrap;word-break:brea
 .modal form{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;width:min(600px,100%);display:grid;gap:10px}
 .modal label{font-weight:600}
 .modal textarea{border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:10px;resize:vertical;font-size:14px}
+a.btn{text-decoration:none;display:inline-block}
+.fbrow{display:flex;gap:8px;flex-wrap:wrap}
 #ideas{display:flex;flex-wrap:wrap;gap:6px}
 #ideas button{font-size:12px}
 .modal .end{justify-content:flex-end}
@@ -87,6 +89,7 @@ pre.code{margin:0;font:12px/1.5 var(--mono);white-space:pre-wrap;word-break:brea
   <button type="button" class="btn primary" id="btnNew" data-t="newIdea"></button>
   <button type="button" class="btn" id="btnReality" aria-pressed="false"></button>
   <button type="button" class="btn" id="btnRestart" data-t="restart"></button>
+  <button type="button" class="btn" id="btnFeedback" data-t="feedback"></button>
   <select id="lang" aria-label="Language"><option value="en">English</option><option value="ja">日本語</option></select>
 </header>
 
@@ -128,6 +131,23 @@ pre.code{margin:0;font:12px/1.5 var(--mono);white-space:pre-wrap;word-break:brea
       <button type="button" class="btn small" data-idea="Delivery riders on a rainy day: the dispatcher sees the orders and the weather, the system re-plans routes and tells customers the new time; riders see their next stop on a watch.">Rainy-day deliveries</button>
     </div>
     <div class="row end"><button type="button" class="btn" id="newCancel" data-t="cancel"></button><button type="submit" class="btn primary" data-t="create"></button></div>
+  </form>
+</div>
+
+<div class="modal" id="fbSheet" hidden>
+  <form id="fbForm">
+    <label data-t="fbTitle"></label>
+    <p class="note" data-t="fbNote"></p>
+    <div class="fbrow">
+      <a class="btn primary" id="fbBug" target="_blank" rel="noopener" data-t="fbBug"></a>
+      <a class="btn" id="fbIdea" target="_blank" rel="noopener" data-t="fbIdea"></a>
+    </div>
+    <div class="fbrow">
+      <button type="button" class="btn" id="fbCopy" data-t="fbCopy"></button>
+      <a class="btn" href="https://github.com/Ag3497120/kuron" target="_blank" rel="noopener" data-t="fbStar"></a>
+    </div>
+    <textarea id="fbText" rows="6" readonly hidden aria-label="Details"></textarea>
+    <div class="row end"><button type="button" class="btn" id="fbClose" data-t="close"></button></div>
   </form>
 </div>
 

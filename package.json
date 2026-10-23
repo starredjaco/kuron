@@ -1,9 +1,37 @@
 {
   "name": "kuron",
   "version": "0.1.0",
-  "description": "Kuron (空論語): a programming language whose CPU is a local LLM. Upstream Claude Code writes the program; the local LLM compiles and runs it.",
+  "description": "Claude (or any LLM) acts as the whole app instead of writing it: try an idea by hand in minutes, then turn it into a spec and a build plan.",
   "type": "module",
-  "bin": { "kuron": "bin/kuron.js" },
-  "engines": { "node": ">=20" },
-  "license": "MIT"
+  "bin": {
+    "kuron": "bin/kuron.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "keywords": [
+    "llm",
+    "claude",
+    "claude-code",
+    "mcp",
+    "prototyping",
+    "ai-agents",
+    "ollama"
+  ],
+  "homepage": "https://kuron.pages.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ag3497120/kuron.git"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "ui/",
+    "examples/",
+    "docs/DESIGN.md",
+    "docs/IDEAS.md",
+    "LICENSE",
+    "README.md"
+  ]
 }

@@ -18,6 +18,7 @@
       limited: "Claude is busy or your usage limit was reached. Wait a moment and try again.", example: "example", yours: "yours", reviewer: "Every action runs on your own Claude account: about 5–60 seconds each.",
       lvUseImage: "Choose a picture", lvLook: "Show and decide", lvNoPicture: "Choose a picture first.", lvCameraHint: "The picture is sent to Claude only to decide.", lvCamera: "Camera", lvNoMic: "The microphone is not available in this page.", lvMic: "Microphone", lvSend: "Decide on this sound",
       lvPlaySounds: "Play test sounds", lvSounds: "Test sounds", lvNoSounds: "No test sounds yet.", lvProcOn: "Processing on", lvProcOff: "Processing off", lvOutputTitle: "Earphones / speakers", lvConnect: "Plays through this device's audio output.", lvSpeak: "Speak", lvNoDrawing: "No picture yet.",
+      feedback: "Feedback", fbTitle: "Feedback on GitHub", fbNote: "These open GitHub in a new tab with a form to fill in; you send it there (a GitHub account is needed). Nothing is sent from this page.", fbBug: "Report a problem", fbIdea: "Share an idea or result", fbCopy: "Copy details of this system", fbStar: "★ Star on GitHub", copiedDetails: "Copied. Paste it into the issue if you want to share it.", close: "Close",
       started: "Started over.", delete: "Remove", confirmDelete: "Remove this system from this browser?", yes: "Remove", no: "Keep" },
     ja: { thinking: "Claude が動いています", decided: "完了", error: "エラー", newIdea: "新しいアイデア", ideaLabel: "作りたいシステムを一言（長くても可）で", ideaPh: "例: パン屋の予約をスマホで受け、明日の仕込みを決めて、焼き上がったらお客に知らせる", create: "立ち上げる", cancel: "やめる",
       ideal: "空論", existing: "既存技術", restart: "最初から", stop: "止める", reqPh: "ここをこうしたい…（例: 緊急度の理由も出して）", reqApply: "Claude に直させる",
@@ -33,6 +34,7 @@
       limited: "Claude が混んでいるか、利用上限に達しました。少し待ってからもう一度どうぞ。", example: "例", yours: "自作", reviewer: "操作はあなたの Claude で動きます。1回あたり約5〜60秒です。",
       lvUseImage: "画像を選ぶ", lvLook: "見せて判断", lvNoPicture: "先に画像を選んでください。", lvCameraHint: "画像は判断のためだけに Claude に渡します。", lvCamera: "カメラ", lvNoMic: "このページではマイクは使えません。", lvMic: "マイク", lvSend: "いまの音で判断",
       lvPlaySounds: "試す音を流す", lvSounds: "試す音", lvNoSounds: "試す音はまだありません。", lvProcOn: "処理あり", lvProcOff: "処理なし", lvOutputTitle: "イヤホン・スピーカー", lvConnect: "この端末の音声出力から流れます。", lvSpeak: "読み上げ", lvNoDrawing: "図はまだありません。",
+      feedback: "フィードバック", fbTitle: "GitHub でフィードバック", fbNote: "GitHub が新しいタブで開き、記入欄の入ったフォームが出ます。送信は GitHub 上で行います（GitHub のアカウントが必要）。このページからは何も送りません。", fbBug: "問題を報告", fbIdea: "アイデアや結果を共有", fbCopy: "このシステムの詳細をコピー", fbStar: "★ GitHub でスター", copiedDetails: "コピーしました。共有したい場合は Issue に貼り付けてください。", close: "閉じる",
       started: "最初からにしました。", delete: "削除", confirmDelete: "このシステムをこのブラウザから消しますか？", yes: "消す", no: "残す" },
   };
   let lang = (() => { try { return localStorage.getItem("kuron.lang") } catch { return null } })() || ((navigator.language || "en").startsWith("ja") ? "ja" : "en");
@@ -221,6 +223,28 @@
   document.querySelectorAll("#ideas button").forEach(b => b.onclick = () => { $("newIdea").value = b.dataset.idea; $("newIdea").focus() });
   $("reqForm").onsubmit = e => { e.preventDefault(); const t = $("reqText").value.trim(); if (!t) return; $("reqText").value = ""; request(t) };
   document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => { tab = b.dataset.tab; renderPane() });
+
+  /* ---------- feedback: GitHub issue forms, filled in by the viewer on GitHub ---------- */
+  const REPO = "https://github.com/Ag3497120/kuron";
+  const issueUrl = (label, title, body) => `${REPO}/issues/new?labels=${encodeURIComponent(label)}&title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+  function details() {
+    const runs = (current.traces || []).slice(-5).map(t => `- ${t.action} (${(t.ms / 1000).toFixed(1)} s${t.reality ? ", existing tech" : ""}): ${t.notice || "(no reply)"}`).join("\n");
+    return `System: ${world.data.name || "(not set up)"}\n\nIdea:\n${(current.idea || world.data.idea || "").trim()}\n\nLast runs:\n${runs || "(none)"}`;
+  }
+  function openFeedback() {
+    const where = `\n\n---\nBrowser version · system: ${world.data.name || "(not set up)"} · ${new Date().toISOString().slice(0, 10)}\n(Optional: "Copy details" in kuron copies your idea and the last runs; paste them here if you want.)`;
+    $("fbBug").href = issueUrl("bug", "[browser] ", "**What happened**\n\n\n**What I expected**\n\n\n**Steps**\n\n" + where);
+    $("fbIdea").href = issueUrl("enhancement", "[idea] ", "**The idea I tried** (paste it, or describe it)\n\n\n**What worked**\n\n\n**What broke or felt wrong**\n\n" + where);
+    $("fbText").hidden = true; $("fbSheet").hidden = false;
+  }
+  $("btnFeedback").onclick = openFeedback;
+  $("fbClose").onclick = () => $("fbSheet").hidden = true;
+  $("fbForm").onsubmit = e => e.preventDefault();
+  $("fbCopy").onclick = async () => {
+    const text = details(), ta = $("fbText");
+    try { await navigator.clipboard.writeText(text); banner(T("copiedDetails")) }
+    catch { ta.value = text; ta.hidden = false; ta.focus(); ta.select() }
+  };
 
   boot();
   // Claude availability: the page renders without it and lights up when the viewer can run it.
