@@ -3,32 +3,36 @@
 import { createLive } from "/ui/live.js";
 const PRESENT = location.pathname === "/present";
 const I18N = {
-  ja: { newProgram: "＋ 新しく作る", newIdeaLabel: "作りたいものを一言で", newIdeaPh: "例: 来客の受付をして、担当者のスマホに知らせるシステム", newNote: "Claude（上流）がプログラムを書き、コンパイルして、そのまま使える状態で開きます。", create: "作る", writing: "Claude が書いています", readyIn: "一言から {s} 秒で使えるようになりました。触って確かめてください。", restored: "前回の続きから再開しました（{t}）", staleServer: "サーバーが古いコードのままです。ターミナルで止めて、起動し直してください。", ideal: "空論", existing: "既存技術", realityTitle: "既存の技術で作った場合", realityNone: "見積もりがありません。", rLatency: "音の遅れ", rLeak: "漏れて直接届く音", rDelay: "判断の遅れ", rError: "判断の誤り", rInterval: "判断の間隔", rIntent: "意図", rPart: "中でやること", rBuilt: "作り方", built: { code: "普通のコード", model: "モデルが必要", service: "外部サービス", not_yet: "今は無理" },
+  ja: { modelsTitle: "使うモデル", modelSetup: "セットアップ・要望・計画", modelEvents: "ボタン操作・タイマー・検証の判定", modelSave: "このモデルにする", modelSaved: "モデルを切り替えました",
+    ahead: "先読み", aheadTitle: "押せるものの結果を AI が先に演じておき、押した瞬間に反映します（その分 AI を多く使います）",
+    modelNote: "名前の書き方: claude-…（Claude Code）／ codex:<モデル>（Codex CLI）／ anthropic:・openai:・gemini:・openrouter:・groq:・lmstudio:<モデル> ／ それ以外は Ollama のモデル名。", modelHere: "この Mac で使えるもの", modelSetupLabel: "準備", modelEventsLabel: "操作", newProgram: "＋ 新しく作る", newIdeaLabel: "作りたいものを一言で", newIdeaPh: "例: 来客の受付をして、担当者のスマホに知らせるシステム", newNote: "セットアップ用のモデルがシステムを立ち上げ、そのまま使える状態で開きます。", create: "作る", writing: "AI が書いています", readyIn: "一言から {s} 秒で使えるようになりました。触って確かめてください。", restored: "前回の続きから再開しました（{t}）", staleServer: "サーバーが古いコードのままです。ターミナルで止めて、起動し直してください。", ideal: "空論", existing: "既存技術", realityTitle: "既存の技術で作った場合", realityNone: "見積もりがありません。", rLatency: "音の遅れ", rLeak: "漏れて直接届く音", rDelay: "判断の遅れ", rError: "判断の誤り", rInterval: "判断の間隔", rIntent: "意図", rPart: "中でやること", rBuilt: "作り方", built: { code: "普通のコード", model: "モデルが必要", service: "外部サービス", not_yet: "今は無理" },
     lvThinking: "LLM が判断しています…", lvDone: "判断しました", lvNoPicture: "まだ映像がありません。カメラを使うか画像で試してください。", lvAuto: "自動", lvUseCamera: "カメラを使う", lvUseImage: "画像で試す", lvLook: "見せて判断", lvCameraHint: "映像は判断のためだけに LLM に渡します。", lvCamera: "カメラ",
     lvUseMic: "マイクを使う", lvSend: "いまの音で判断", lvMic: "マイク", lvPlaySounds: "試す音を流す", lvSounds: "試す音", lvNoSounds: "試す音がまだありません。試す音を作る動きを実行してください。",
     lvFindOutputs: "出力先を探す", lvOutput: "出力", lvNoSink: "このブラウザでは出力先を選べません。OS の出力をイヤホンにしてください。", lvProcOn: "処理あり", lvProcOff: "処理なし（そのまま）", lvOutputTitle: "イヤホン・スピーカー", lvConnect: "イヤホンを接続して、出力先から選んでください。", lvSpeak: "読み上げ", lvNoDrawing: "図はまだありません。",
-    newRun: "最初から動かす", runChecks: "検証する", present: "発表モード", requestLabel: "直したいこと", requestPh: "ここをこうしたい…（例: 優先度の理由も出して）", memo: "メモする", applyNow: "Claude に反映させる", memoFab: "要望をメモ", cancel: "やめる",
+    newRun: "最初から動かす", runChecks: "検証する", present: "発表モード", requestLabel: "直したいこと", requestPh: "ここをこうしたい…（例: 優先度の理由も出して）", memo: "メモする", applyNow: "AI に反映させる", memoFab: "要望をメモ", cancel: "やめる",
     tabState: "状態", tabTrace: "実行記録", tabCheck: "検証", tabReq: "要望", tabRev: "逆算", tabSrc: "ソース",
     compiling: "準備中", compiled: "動いています", compileFail: "立ち上げに失敗", stage: { setup: "LLM がシステムを立ち上げ中" },
     cpu: "CPU 実行中", noState: "まだ動いていません。", noTraces: "まだ何も実行していません。ボタンを押すと、ここに CPU が実行した命令と状態の変化が出ます。",
     checksNone: "「## 確かめる」がありません。", checksRun: "検証を実行", checksRunning: "検証中…", pass: "合格", fail: "不合格",
-    reqNone: "要望はまだありません。発表モードや下の欄からメモできます。", reqApply: "反映", reqStatus: { open: "未反映", working: "Claude が反映中", done: "反映済み" },
-    upstreamBusy: "Claude（上流）が作業中", upstreamErr: "Claude（上流）でエラー",
-    revMake: "逆算する（仕様・実行例・計画）", revNone: "まだ逆算していません。触って動きを確かめてから押すと、実行記録を正解例にした仕様と、作るための計画・プロンプトを Claude が書きます。", revPlan: "計画", revSpec: "仕様",
+    reqNone: "要望はまだありません。発表モードや下の欄からメモできます。", reqApply: "反映", reqStatus: { open: "未反映", working: "AI が反映中", done: "反映済み" },
+    upstreamBusy: "AI が作業中", upstreamErr: "AI でエラー",
+    revMake: "逆算する（仕様・実行例・計画）", revNone: "まだ逆算していません。触って動きを確かめてから押すと、実行記録を正解例にした仕様と、作るための計画・プロンプトをセットアップ用のモデルが書きます。", revPlan: "計画", revSpec: "仕様",
     save: "アイデアを保存", srcNote: "アイデアを書き換えたら「最初から動かす」で、LLM がシステムを立ち上げ直します。", briefTitle: "ふるまいのメモ（LLM が書いたもの）", ideaTitle: "アイデア", saved: "保存しました", warnings: "コンパイラからの注意", reads: "読む", writes: "書く", inputs: "入力",
     ms: "ミリ秒", empty: "なし", screenOf: "画面", sec: "秒", noticeLabel: "知らせ", error: "エラー", noLLM: "ローカル LLM に繋がりません" },
-  en: { newProgram: "+ New", newIdeaLabel: "Describe what you want in one line", newIdeaPh: "e.g. a reception desk that notifies the host on their phone", newNote: "Claude (upstream) writes the program, compiles it and opens it ready to use.", create: "Create", writing: "Claude is writing", readyIn: "Usable {s}s after the idea. Try it.", restored: "Resumed where you left off ({t})", staleServer: "The server is running old code. Stop it in the terminal and start it again.", ideal: "Ideal", existing: "Existing tech", realityTitle: "If built with existing technology", realityNone: "No estimate.", rLatency: "Sound delay", rLeak: "Sound leaking in", rDelay: "Decision delay", rError: "Wrong decisions", rInterval: "Decision interval", rIntent: "Intent", rPart: "What it does", rBuilt: "Built with", built: { code: "ordinary code", model: "needs a model", service: "outside service", not_yet: "not possible yet" },
+  en: { modelsTitle: "Models", modelSetup: "Setup, requests and plans", modelEvents: "Button presses, timers and judging checks", modelSave: "Use these models", modelSaved: "Models changed",
+    ahead: "Look ahead", aheadTitle: "The AI plays what can be pressed next in advance, so a press answers at once (uses the AI more)",
+    modelNote: "Names: claude-… (Claude Code) / codex:<model> (Codex CLI) / anthropic: · openai: · gemini: · openrouter: · groq: · lmstudio:<model> / anything else is an Ollama model.", modelHere: "Available on this machine", modelSetupLabel: "setup", modelEventsLabel: "events", newProgram: "+ New", newIdeaLabel: "Describe what you want in one line", newIdeaPh: "e.g. a reception desk that notifies the host on their phone", newNote: "The setup model brings the system up and opens it ready to use.", create: "Create", writing: "The AI is writing", readyIn: "Usable {s}s after the idea. Try it.", restored: "Resumed where you left off ({t})", staleServer: "The server is running old code. Stop it in the terminal and start it again.", ideal: "Ideal", existing: "Existing tech", realityTitle: "If built with existing technology", realityNone: "No estimate.", rLatency: "Sound delay", rLeak: "Sound leaking in", rDelay: "Decision delay", rError: "Wrong decisions", rInterval: "Decision interval", rIntent: "Intent", rPart: "What it does", rBuilt: "Built with", built: { code: "ordinary code", model: "needs a model", service: "outside service", not_yet: "not possible yet" },
     lvThinking: "The LLM is deciding…", lvDone: "Decided", lvNoPicture: "No picture yet. Use the camera or try an image.", lvAuto: "Auto", lvUseCamera: "Use camera", lvUseImage: "Try an image", lvLook: "Show and decide", lvCameraHint: "The picture is only given to the LLM to decide.", lvCamera: "Camera",
     lvUseMic: "Use microphone", lvSend: "Decide on this sound", lvMic: "Microphone", lvPlaySounds: "Play test sounds", lvSounds: "Test sounds", lvNoSounds: "No test sounds yet. Run the action that makes them.",
     lvFindOutputs: "Find outputs", lvOutput: "Output", lvNoSink: "This browser cannot choose an output. Set your earphones as the system output.", lvProcOn: "Processing on", lvProcOff: "Processing off (as is)", lvOutputTitle: "Earphones / speakers", lvConnect: "Connect your earphones and choose them as the output.", lvSpeak: "Speak", lvNoDrawing: "No picture yet.",
-    newRun: "Restart", runChecks: "Run checks", present: "Present", requestLabel: "What should change", requestPh: "I'd like this to… (e.g. show why it chose the priority)", memo: "Note it", applyNow: "Ask Claude to apply", memoFab: "Note a request", cancel: "Cancel",
+    newRun: "Restart", runChecks: "Run checks", present: "Present", requestLabel: "What should change", requestPh: "I'd like this to… (e.g. show why it chose the priority)", memo: "Note it", applyNow: "Ask the AI to apply", memoFab: "Note a request", cancel: "Cancel",
     tabState: "State", tabTrace: "Executions", tabCheck: "Checks", tabReq: "Requests", tabRev: "Reverse", tabSrc: "Source",
     compiling: "Preparing", compiled: "Running", compileFail: "Setup failed", stage: { setup: "the LLM is setting the system up" },
     cpu: "CPU running", noState: "Not running yet.", noTraces: "Nothing has run yet. Press a button: the instructions the CPU executed and the state changes appear here.",
     checksNone: "There is no Checks section.", checksRun: "Run checks", checksRunning: "Running checks…", pass: "pass", fail: "fail",
-    reqNone: "No requests yet. Note them in presentation mode or in the bar below.", reqApply: "Apply", reqStatus: { open: "open", working: "Claude is applying", done: "applied" },
-    upstreamBusy: "Claude (upstream) is working", upstreamErr: "Claude (upstream) failed",
-    revMake: "Reverse (spec, examples, plan)", revNone: "Not reversed yet. Try the system first; then Claude writes a spec that uses the recorded executions as golden examples, plus the build plan and prompts.", revPlan: "Plan", revSpec: "Spec",
+    reqNone: "No requests yet. Note them in presentation mode or in the bar below.", reqApply: "Apply", reqStatus: { open: "open", working: "The AI is applying", done: "applied" },
+    upstreamBusy: "The AI is working", upstreamErr: "The AI failed",
+    revMake: "Reverse (spec, examples, plan)", revNone: "Not reversed yet. Try the system first; then the setup model writes a spec that uses the recorded executions as golden examples, plus the build plan and prompts.", revPlan: "Plan", revSpec: "Spec",
     save: "Save the idea", srcNote: "After changing the idea, press Restart and the LLM sets the system up again.", briefTitle: "Brief (written by the LLM)", ideaTitle: "Idea", saved: "Saved", warnings: "Compiler notes", reads: "reads", writes: "writes", inputs: "inputs",
     ms: "ms", empty: "none", screenOf: "screen", sec: "s", noticeLabel: "notice", error: "Error", noLLM: "Cannot reach the local LLM" },
 };
@@ -45,6 +49,7 @@ function applyI18n() {
   document.documentElement.lang = lang; $("lang").value = lang;
   document.querySelectorAll("[data-i18n]").forEach(n => n.textContent = T(n.dataset.i18n));
   document.querySelectorAll("[data-i18n-ph]").forEach(n => n.placeholder = T(n.dataset.i18nPh));
+  document.querySelectorAll("[data-i18n-title]").forEach(n => n.title = T(n.dataset.i18nTitle));
 }
 $("lang").onchange = e => { lang = e.target.value; try { localStorage.setItem("kuron.lang", lang) } catch { } applyI18n(); renderAll() };
 
@@ -118,7 +123,9 @@ function comp(c, ctx) {
     }
     case "button": {
       const b = el("button", "c-btn", tpl(c.text, row)); b.type = "button"; b.disabled = !!busy[ctx.dev];
-      b.onclick = () => press(c, ctx); return b;
+      b.onclick = () => press(c, ctx);
+      if (c.action && !hasInputs(ctx.screen)) b.dataset.ahead = JSON.stringify({ intent: c.action, screen: ctx.screen, item: rowItem(ctx), inputs: {} });   // what pressing it would send, for looking ahead
+      return b;
     }
     case "list": case "table": {
       const rows = listOf(c);
@@ -149,6 +156,23 @@ function comp(c, ctx) {
 }
 
 /* ---------- actions ---------- */
+const rowItem = ctx => ctx.row && ctx.row.item && typeof ctx.row.item === "object" ? { collection: ctx.list, ...ctx.row.item } : null;
+const hasInputs = screen => { const s = ST && ST.ir && ST.ir.screens.find(x => x.name === screen); return !s || s.view.some(p => p.kind === "input" || p.kind === "select") };
+// Looking ahead: tell the server what can be touched right now, so it can play those events before anyone presses.
+let aheadTimer = null, aheadInfo = null;
+function aheadSoon() {
+  clearTimeout(aheadTimer);
+  aheadTimer = setTimeout(() => {
+    if (!ST || !ST.aheadOn || ST.compiling || Object.keys(busy).length || document.querySelector(".lv-wait")) return;
+    const seen = new Set(), candidates = [];
+    document.querySelectorAll("#stage [data-ahead]").forEach(n => { const k = n.getAttribute("data-ahead"); if (!seen.has(k)) { seen.add(k); candidates.push(JSON.parse(k)) } });
+    if (candidates.length) api("/api/ahead", { candidates }).catch(() => { });
+  }, 400);
+}
+function renderAhead() {
+  const on = !!(ST && ST.aheadOn), b = $("btnAhead");
+  b.textContent = (on ? "◉ " : "○ ") + T("ahead") + (on && aheadInfo && aheadInfo.total ? ` ${aheadInfo.ready}/${aheadInfo.total}` : ""); b.setAttribute("aria-pressed", String(on)); b.title = T("aheadTitle");
+}
 async function press(c, ctx) {
   if (!c.action) { if (c.goto) go(ctx.dev, c.goto); return }
   const f = forms[ctx.screen] || {};
@@ -156,7 +180,7 @@ async function press(c, ctx) {
   const t0 = Date.now(); busy[ctx.dev] = { t0, action: c.action }; renderDevice(ctx.dev);
   const tick = setInterval(() => { const n = document.querySelector(`[data-dev="${CSS.escape(ctx.dev)}"] .cpubusy em`); if (n) n.textContent = ((Date.now() - t0) / 1000).toFixed(1) + T("sec") }, 100);
   try {
-    const item = ctx.row && ctx.row.item && typeof ctx.row.item === "object" ? { collection: ctx.list, ...ctx.row.item } : null;
+    const item = rowItem(ctx);
     const r = await api("/api/event", { intent: c.action, screen: ctx.screen, item, inputs });
     state = r.state;
     for (const k of Object.keys(f)) if (!(document.querySelector(`select[data-name="${CSS.escape(k)}"]`))) f[k] = "";
@@ -201,13 +225,13 @@ function renderDevice(key) {
   const d = devices().find(x => x.key === key); const old = document.querySelector(`[data-dev="${CSS.escape(key)}"]`);
   if (!d || !old) return renderStage();
   const focus = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.name;
-  old.replaceWith(frame(d)); restoreFocus(focus);
+  old.replaceWith(frame(d)); restoreFocus(focus); aheadSoon();
 }
 function renderStage() {
   const st = $("stage"), focus = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.name;
   st.textContent = "";
   if (!ST || !ST.ir) { st.append(el("p", "note", ST && ST.error ? T("compileFail") + ": " + (ST.error.message || JSON.stringify(ST.error.errors)) : T("compiling") + "…")); return }
-  devices().forEach(d => st.append(frame(d))); restoreFocus(focus);
+  devices().forEach(d => st.append(frame(d))); restoreFocus(focus); aheadSoon();
 }
 function restoreFocus(name) { if (!name) return; const n = document.querySelector(`[data-name="${CSS.escape(name)}"]`); if (n) { n.focus({ preventScroll: true }); try { n.setSelectionRange(n.value.length, n.value.length) } catch { } } }
 
@@ -309,7 +333,7 @@ function renderTop() {
   if (ST.compiling) { cs.className = "pill busy"; cs.textContent = T("compiling") + (ST.stage ? " · " + T("stage." + ST.stage) : "") }
   else if (ST.error) { cs.className = "pill ng"; cs.textContent = T("compileFail") }
   else if (ST.ir) { cs.className = "pill ok"; cs.textContent = T("compiled") + (ST.stats ? " · " + (ST.stats.ms / 1000).toFixed(1) + T("sec") + (ST.stats.hits ? " (" + ST.stats.hits + " cached)" : "") : "") }
-  $("models").textContent = "compile " + ST.models.compile + " · cpu " + ST.models.cpu;
+  $("models").textContent = T("modelSetupLabel") + " " + ST.models.compile + " · " + T("modelEventsLabel") + " " + ST.models.cpu;
   const u = ST.upstream || {};
   if (u.busy && u.kind === "new") { cs.className = "pill busy"; cs.textContent = T("writing") + " · " + Math.round((Date.now() - u.started) / 1000) + T("sec") }
   const sel = $("prog"); sel.textContent = "";
@@ -336,11 +360,30 @@ function renderReality() {
   }
   p.append(el("p", "dim", [T("rLatency") + " " + R.audioLatencyMs + "ms", T("rLeak") + " " + Math.round(R.leak * 100) + "%", T("rDelay") + " " + R.decisionDelayMs + "ms", T("rError") + " " + Math.round(R.errorRate * 100) + "%", T("rInterval") + " " + R.minIntervalSec + T("sec")].join(" · ")));
 }
+$("btnAhead").onclick = () => api("/api/ahead", { on: !(ST && ST.aheadOn) }).catch(e => banner(e.message));
 $("btnReality").onclick = () => api("/api/reality", { on: !(ST && ST.realityOn) }).catch(e => banner(e.message));
 function banner(msg) { const b = $("banner"); b.textContent = msg; b.hidden = !msg }
 $("prog").onchange = e => api("/api/open", { file: e.target.value }).catch(err => banner(T("error") + ": " + err.message));
 $("btnNew").onclick = () => { $("newSheet").hidden = false; $("newIdea").focus() };
 $("newCancel").onclick = () => $("newSheet").hidden = true;
+/* ---------- model picker: any model, changed while the system runs ---------- */
+$("models").onclick = async () => {
+  $("modelSheet").hidden = false; $("modelErr").textContent = "";
+  $("modelCompile").value = ST.models.compile; $("modelCpu").value = ST.models.cpu;
+  const a = (await api("/api/models").catch(() => ({}))).available || {}, names = [];
+  if (a.claudeCode) names.push("claude-sonnet-5-5", "claude-haiku-5-5");
+  if (a.codex) names.push("codex:");
+  (a.ollama || []).forEach(n => names.push(n));
+  (a.apis || []).filter(p => p.ready).forEach(p => names.push(p.name + ":"));
+  const dl = $("modelNames"); dl.textContent = ""; names.forEach(n => dl.append(new Option(n, n)));
+  $("modelHere").textContent = T("modelHere") + ": " + [a.claudeCode && "Claude Code", a.codex && "Codex CLI", (a.ollama || []).length && "Ollama (" + a.ollama.join(", ") + ")", ...(a.apis || []).filter(p => p.ready && p.key).map(p => p.name + " API")].filter(Boolean).join(" · ");
+};
+$("modelCancel").onclick = () => $("modelSheet").hidden = true;
+$("modelForm").onsubmit = async e => {
+  e.preventDefault(); $("modelErr").textContent = "";
+  try { const r = await api("/api/models", { compile: $("modelCompile").value, cpu: $("modelCpu").value }); ST.models = r.models; renderTop(); $("modelSheet").hidden = true; banner(T("modelSaved")) }
+  catch (err) { $("modelErr").textContent = err.message }
+};
 $("newForm").onsubmit = async e => {
   e.preventDefault(); const idea = $("newIdea").value.trim(); if (!idea) return;
   try { await api("/api/new", { idea }); newStart = Date.now(); newFile = null; $("newSheet").hidden = true; $("newIdea").value = ""; banner(""); ST.upstream = { busy: true, kind: "new", started: newStart }; renderTop() }
@@ -353,7 +396,7 @@ async function reloadProgram() {
   traces = (await api("/api/traces")).traces;
   renderAll();
 }
-function renderAll() { if (!ST) return; renderTop(); renderStage(); renderPane(); renderReality() }
+function renderAll() { if (!ST) return; renderTop(); renderStage(); renderPane(); renderReality(); renderAhead() }
 
 
 async function runChecks() { checking = true; renderPane(); try { checks = (await api("/api/check", {})).checks } catch (e) { checks = [{ name: T("error"), ok: false, error: e.message }] } checking = false; renderPane() }
@@ -387,7 +430,9 @@ async function boot() {
     if (ev.type === "state" && ev.sid === sid) { state = ev.state; if (!Object.keys(busy).length) renderStage(); if (tab === "state") renderPane() }
     if (ev.type === "session") { sid = ev.sid; state = ev.state; renderStage(); renderPane() }
     if (ev.type === "requests") { ST.requests = ev.requests; if (tab === "req") renderPane() }
+    if (ev.type === "models" && ev.status) { ST.models = ev.status.models; renderTop(); return }
     if (ev.type === "reality") { ST.realityOn = ev.on; renderReality(); return }
+    if (ev.type === "ahead") { const was = ST.aheadOn; ST.aheadOn = ev.on; aheadInfo = ev; renderAhead(); if (ev.on && !was) aheadSoon(); return }
     if (ev.type === "program") { live.reset(); if (newStart) newFile = ev.program; else banner(""); await reloadProgram(); return }
     if (ev.type === "upstream") { ST.upstream = ev.upstream; if (ev.upstream.kind === "new" && !ev.upstream.busy && ev.upstream.error) { banner(T("upstreamErr") + ": " + ev.upstream.error); newStart = null } renderTop(); if (ev.status) ST = ev.status; if (tab === "req" || tab === "rev") renderPane() }
     if (ev.type === "source") { ST.text = ev.text; if (tab === "src") renderPane() }

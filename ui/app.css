@@ -151,7 +151,7 @@ body.present .main{grid-template-columns:1fr}
 .c-image span{margin:8px;font-size:12px;background:rgba(0,0,0,.45);color:#fff;border-radius:6px;padding:3px 8px}
 .c-divider{border:0;border-top:1px solid var(--screen-2);width:100%;margin:2px 0}
 
-@media (max-width:980px){ #models{display:none} .main{grid-template-columns:minmax(0,1fr)} .side{border-left:0;border-top:1px solid var(--line);max-height:50vh} }
+@media (max-width:980px){ .main{grid-template-columns:minmax(0,1fr)} .side{border-left:0;border-top:1px solid var(--line);max-height:50vh} }
 
 /* program switcher, new-program dialog, ready banner */
 #prog{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:2px 6px;font-size:12.5px;max-width:240px}
@@ -162,10 +162,16 @@ body.present #prog{display:none}
 .modal label{font-weight:600}
 .modal textarea{border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:10px;resize:vertical;font-size:14px}
 .modal .row{justify-content:flex-end}
+.modal input{border:1px solid var(--line);border-radius:8px;background:var(--bg);color:inherit;padding:8px 10px;font:13px var(--mono);min-width:0}
+.modal .note.ng{color:var(--bad)}
+.modal .note:empty{display:none}
+button.models{border:1px solid var(--line);background:none;color:var(--ink-3);border-radius:999px;padding:1px 10px;font-size:12px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+button.models:hover{color:var(--ink);border-color:var(--ink-3)}
 .modal button{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:5px 14px}
 .modal button.primary{background:var(--ink);color:var(--panel);border-color:var(--ink)}
 
 /* "existing technology" estimate */
+#btnAhead[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
 #btnReality[aria-pressed="true"]{border-color:var(--warn);color:var(--warn)}
 .realpane{margin:12px 24px 0;padding:10px 14px;border:1px solid var(--warn);border-radius:10px;background:color-mix(in srgb,var(--warn) 8%,var(--panel));font-size:13px}
 .realpane ul{margin:6px 0;padding-left:1.2em}
@@ -175,7 +181,12 @@ body.present #prog{display:none}
 .lv{display:grid;gap:8px;background:var(--screen-2);border-radius:12px;padding:10px 12px}
 .lv-title{font-size:13px}
 .lv video,.lv img,.lv svg{width:100%;max-height:340px;object-fit:contain;border-radius:8px;background:#000}
-.lv-draw svg{background:transparent}
+.lv-draw{background:transparent;padding:0}
+.lv-draw svg{background:transparent;max-height:72vh}
+.lv-touch{cursor:pointer}
+.lv-touch:hover,.lv-touch:focus-visible{filter:brightness(1.12);outline:none}
+.lv-touch:focus-visible{stroke:var(--accent);stroke-width:2}
+.lv-wait{opacity:.6;pointer-events:none;transition:opacity .2s}
 .lv-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .lv-btn,.lv select{border:1px solid color-mix(in srgb,var(--screen-ink) 25%,transparent);background:var(--screen);color:var(--screen-ink);border-radius:8px;padding:5px 10px;font:inherit;font-size:12.5px}
 .lv-status{color:var(--ink-3);font-size:12px}

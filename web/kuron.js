@@ -49,6 +49,8 @@
           if (d.collections[c.collection].length === n) problems.push(where + `: no item with id "${c.id}"`); else done.push({ op: "remove", collection: c.collection, id: c.id });
         } else if (c.op === "order") {
           if (!Array.isArray(c.ids)) { problems.push(where + ": ids must list the item ids in the new order"); continue }
+          const unknown = c.ids.filter(id => !list.some(x => x.id === id));
+          if (unknown.length) { problems.push(where + `: no item with id ${unknown.map(x => `"${x}"`).join(", ")}; nothing was reordered`); continue }
           const pos = new Map(c.ids.map((id, k) => [id, k]));
           list.sort((a, b) => (pos.has(a.id) ? pos.get(a.id) : 1e9) - (pos.has(b.id) ? pos.get(b.id) : 1e9)); done.push({ op: "order", collection: c.collection });
         } else problems.push(where + ': op must be "add", "update", "remove" or "order"');
@@ -85,7 +87,7 @@
     order: { type: "object", properties: { property: { type: "string" }, values: { type: "array", items: { type: "string" }, description: "word values in display order (first shown first)" }, direction: { type: "string", enum: ["ascending", "descending"] } } },
     columns: { type: "array", items: { type: "string" } }, empty: { type: "string" },
     every: { type: "number", description: "camera / mic / output: seconds between automatic sends (0 = only on a button)" },
-    value: { type: "string", description: "drawing: the value that holds the SVG" },
+    value: { type: "string", description: "drawing: the value that holds the SVG; elements in it with data-intent can be touched" },
   };
   const rowPart = { type: "object", properties: { ...partProps, kind: { type: "string", enum: ROW_KINDS } }, required: ["kind"] };
   const part = { type: "object", properties: { ...partProps, row: { type: "array", items: rowPart } }, required: ["kind"] };
@@ -107,7 +109,7 @@
         if (bad.length) return fail(`unknown part kinds: ${bad.join(", ")}. Use: ${KINDS.join(", ")}`);
         const NEED = { heading: ["text"], text: ["text"], metric: ["label", "text"], badge: ["text"], button: ["text"], input: ["name"], select: ["name", "options"], list: ["collection"], table: ["collection"], chart: ["collection"], drawing: ["value"], speak: ["text"], image: ["text"] };
         const missing = [];
-        const look = (list, where) => list.forEach((p, i) => { for (const k of NEED[p.kind] || []) if (p[k] === undefined || p[k] === "") missing.push(`${where}[${i}] ${p.kind} needs ${k}`); if (p.row) look(p.row, `${where}[${i}].row`) });
+        const look = (list, where) => list.forEach((p, i) => { for (const k of NEED[p.kind] || []) if (p[k] === undefined || p[k] === "") missing.push(`${where}[${i}] ${p.kind} needs ${k}`); if (p.where && typeof p.where === "object" && Object.keys(p.where).length !== 1) missing.push(`${where}[${i}] ${p.kind} where must name exactly one property (it has ${Object.keys(p.where).length})`); if (p.row) look(p.row, `${where}[${i}].row`) });
         look(a.parts || [], "parts");
         if (missing.length) return fail("not saved, fix and call again: " + missing.slice(0, 12).join("; "));
         const d = world.data, s = { name: a.name, device: a.device, frame: a.frame, parts: a.parts }, i = d.screens.findIndex(x => x.name === a.name);
@@ -126,12 +128,12 @@
       run: ({ world }, a) => { world.data.output.bands = a.bands; world.changed("state"); return ok(`${a.bands.length} bands set`) } },
     { name: "speak", roles: ["event", "request"], description: "Say something aloud through the person's speakers or earphones.",
       input: { type: "object", properties: { text: { type: "string" } }, required: ["text"] }, run: ({ emit }, a) => { emit({ type: "speak", text: a.text }); return ok("spoken") } },
-    { name: "draw", roles: ["setup", "event", "request"], description: "Draw a picture as SVG into a named value; a drawing part shows it.",
+    { name: "draw", roles: ["setup", "event", "request"], description: "Draw a picture as SVG into a named value; a drawing part shows it. The picture can be the face itself (a board, a map, cards, a scene): give any element data-intent=\"what touching it means, in plain words\" and touching it sends you that intent, with the element's other data-* attributes as inputs (e.g. data-cell=\"b3\"). Text may name values in braces, e.g. {score}, so it follows the world without redrawing. It may move (SVG animate, CSS in a style element). No scripts, no outside images.",
       input: { type: "object", properties: { value: { type: "string" }, svg: { type: "string" } }, required: ["value", "svg"] },
       run: ({ world }, a) => { if (!/^\s*<svg[\s>]/.test(a.svg)) return fail("svg must start with <svg"); world.data.values[a.value] = a.svg; world.changed("state"); return ok("drawn") } },
-    { name: "set_timer", roles: ["setup", "request"], description: "Run an intent every N seconds while the system is open (e.g. time passing, a sensor drifting). Same name replaces; everySec 0 removes.",
+    { name: "set_timer", roles: ["setup", "request"], description: "Run an intent every N seconds while the system is open (e.g. time passing, a sensor drifting). Same name replaces; everySec 0 removes; otherwise at least 5.",
       input: { type: "object", properties: { name: { type: "string" }, everySec: { type: "number" }, intent: { type: "string" } }, required: ["name", "everySec", "intent"] },
-      run: ({ world }, a) => { const d = world.data; d.timers = d.timers.filter(t => t.name !== a.name); if (a.everySec > 0) d.timers.push({ name: a.name, every: Math.max(5, a.everySec), intent: a.intent }); world.changed("timers"); return ok(a.everySec > 0 ? "timer set" : "timer removed") } },
+      run: ({ world }, a) => { if (a.everySec > 0 && a.everySec < 5) return fail("everySec must be 0 (remove) or at least 5; nothing was set"); const d = world.data; d.timers = d.timers.filter(t => t.name !== a.name); if (a.everySec > 0) d.timers.push({ name: a.name, every: a.everySec, intent: a.intent }); world.changed("timers"); return ok(a.everySec > 0 ? "timer set" : "timer removed") } },
     { name: "write_brief", roles: ["setup", "request"], description: "Write the system's name and its brief: how it behaves, its roles, rules and what each intent should do. You get this brief on every turn.",
       input: { type: "object", properties: { name: { type: "string" }, lang: { type: "string", description: "language code of everything the person sees, e.g. ja, en" }, brief: { type: "string" } }, required: ["name", "brief"] },
       run: ({ world }, a) => { Object.assign(world.data, { name: a.name, brief: a.brief }, a.lang ? { lang: a.lang } : {}); world.changed("brief"); return ok("brief saved") } },
@@ -187,16 +189,16 @@
   const COMMON = `You are not writing software. You ARE the system: everything it does happens because you do it, through the tools (your hands). Never write code. Write everything a person sees in the system's language. Call independent tools together in the same round.`;
   const ROLE_PROMPTS = {
     setup: `${COMMON}
-Make the idea exist as a system a person can use by hand right now — even if it would normally take weeks to build. Using only the tools:
-1. write_brief: the system's name, language and brief — its roles, rules, and what you will do for each intent (including judgements ordinary code could not make).
+Make the idea exist as a system a person can use by hand right now — even if it would normally take weeks to build. First decide what this is to the person using it — a tool for work, a game, a story, a board, a map, an instrument, a companion, something else — and what they should see and touch. Do not fall back on forms and lists: they suit records and queues of work. When the idea is played, explored or watched, the face is a picture you draw: the board, scene, cards or map itself (draw + a drawing part), with the things a person touches carrying intents, text that follows values, and motion where it gives life. Then, using only the tools:
+1. write_brief: the system's name, language and brief — what kind of thing it is, its roles, rules, and what you will do for each intent (including judgements ordinary code could not make, and how you redraw the picture as things happen).
 2. apply: create the collections it needs with realistic test data (a believable situation to try right away).
-3. define_screen: a minimal screen for each device or role the idea needs. Only what is needed to use the core. Buttons carry intents in plain words; lists name their collection and, when the order matters, give it (with word values in display order). Use real-world parts (camera, sounds, output, speak, drawing) when the idea touches the real world.
-4. set_timer when time passing matters; play_sounds / draw when a test situation needs them.
+3. define_screen: a screen for each device or role the idea needs, in the form you decided; only what is needed to use the core. A drawn face is a drawing part (draw it before you finish), with ordinary parts around it only where they help. Buttons carry intents in plain words; lists name their collection and, when the order matters, give it (with word values in display order). Use real-world parts (camera, sounds, output, speak, drawing) when the idea touches the real world.
+4. set_timer when time passing matters; play_sounds when a test situation needs them.
 5. add_check: 2–4 scenarios of a person using it and what must then be true.
 6. set_reality: how this would behave if built today with existing technology — for every intent, which parts would be ordinary code, a model, an outside service or not possible yet, how often it would go wrong, how late it would answer and how it typically fails; plus sound delay and leakage if sound is involved.
 If a tool reports a problem, correct your call. Finish with one sentence saying what you made.`,
     event: `${COMMON}
-Something just happened in the system (below). Act as the system would: read only what you need (query), make every change in one apply, and add speak / notify / play_sounds / shape_sound / draw / define_screen only if the behaviour calls for it. Judge, predict and generate concretely and realistically. Never invent facts the world contradicts; if something needed is missing, say so in your reply. Use at most 4 tools. Reply with one short sentence for the person, or nothing.`,
+Something just happened in the system (below). Act as the system would: read only what you need (query), make every change in one apply, redraw (draw) a picture you drew when what it shows has changed, and add speak / notify / play_sounds / shape_sound / draw / define_screen only if the behaviour calls for it. Judge, predict and generate concretely and realistically. Never invent facts the world contradicts; if something needed is missing, say so in your reply. Use at most 4 tools. Reply with one short sentence for the person, or nothing.`,
     request: `${COMMON}
 A person tried the system and asked for a change (below). Make the change through the tools — rewrite the brief, redefine screens, adjust data, timers or checks. Keep everything else as it is. Reply with one sentence saying what changed.`,
   };
@@ -270,10 +272,10 @@ A person tried the system and asked for a change (below). Make the change throug
           const res = await runTurn({ role: "event", world: w, message: `EVENT: ${s.intent}${s.inputs ? `\nINPUTS: ${JSON.stringify(s.inputs)}` : ""}${s.item ? `\nITEM (find it yourself): ${s.item}` : ""}`, signal });
           r.steps.push({ action: s.intent, inputs: s.inputs || {}, ms: res.ms, notice: res.text });
         }
-        const verdicts = await sample.json(`You judge a test of a system. For each expectation, decide strictly whether it holds, comparing the world before and after. Explain briefly in ${langName(w.data.lang)}, quoting the values you looked at.
+        const verdicts = await sample.json(`You judge a test of a system. For each expectation, decide strictly whether it holds, comparing the world before and after. When the expectation is about what a person sees (shown, listed, gone from a list, a count on a screen), judge what the screens would draw from the world: a list or table with "where" shows only the items whose property equals that value, in the given order. Explain briefly in ${langName(w.data.lang)}, quoting the values you looked at.
 Reply with only a JSON array, one {"pass": boolean, "reason": string} per expectation, in order.
 
-${clip(JSON.stringify({ scenario: c.name, expectations: c.expect, before, after: w.view() }), 200000)}`, { modelTier: "quick", cache: false, signal });
+${clip(JSON.stringify({ scenario: c.name, expectations: c.expect, screens: w.data.screens, before, after: w.view() }), 200000)}`, { modelTier: "quick", cache: false, signal });
         c.expect.forEach((e, i) => { const v = Array.isArray(verdicts) ? verdicts[i] || {} : {}; r.expect.push({ text: e, pass: v.pass === true, reason: String(v.reason || "") }); if (v.pass !== true) r.ok = false });
       } catch (e) { r.ok = false; r.error = e.code || e.message }
       out.push(r);

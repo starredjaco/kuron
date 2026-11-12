@@ -107,3 +107,9 @@
 .kface .lv-gain i{height:8px;border-radius:4px;display:block}
 .kface .lv-gain i.cut{background:var(--k-warn)} .kface .lv-gain i.boost{background:var(--k-good)}
 .kface .lv-speak p{margin:0}
+
+.kface .lv-draw{background:transparent;padding:0}
+.kface .lv-draw svg{max-height:72vh}
+.kface .lv-touch{cursor:pointer}
+.kface .lv-touch:hover,.kface .lv-touch:focus-visible{filter:brightness(1.12);outline:none}
+.kface .lv-wait{opacity:.6;pointer-events:none}

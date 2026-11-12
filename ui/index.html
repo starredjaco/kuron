@@ -11,11 +11,12 @@
   <div class="brand"><b>kuron</b><span id="sysName">—</span><select id="prog" aria-label="program"></select></div>
   <div class="meta">
     <span class="pill" id="compileStatus">…</span>
-    <span class="dim" id="models"></span>
+    <button type="button" class="models" id="models" data-i18n-title="modelsTitle"></button>
   </div>
   <div class="acts">
     <button type="button" id="btnNew" class="primary" data-i18n="newProgram"></button>
     <button type="button" id="btnReality" aria-pressed="false"></button>
+    <button type="button" id="btnAhead" aria-pressed="false"></button>
     <button type="button" id="btnSession" data-i18n="newRun"></button>
     <button type="button" id="btnCheck" data-i18n="runChecks"></button>
     <a id="lnkPresent" href="/present" target="_blank" rel="noopener" data-i18n="present"></a>
@@ -60,6 +61,20 @@
     <textarea id="newIdea" rows="4" data-i18n-ph="newIdeaPh"></textarea>
     <p class="note" data-i18n="newNote"></p>
     <div class="row"><button type="button" id="newCancel" data-i18n="cancel"></button><button type="submit" class="primary" data-i18n="create"></button></div>
+  </form>
+</div>
+<div class="modal" id="modelSheet" hidden>
+  <form id="modelForm">
+    <b data-i18n="modelsTitle"></b>
+    <label for="modelCompile" data-i18n="modelSetup"></label>
+    <input id="modelCompile" list="modelNames" autocomplete="off" spellcheck="false">
+    <label for="modelCpu" data-i18n="modelEvents"></label>
+    <input id="modelCpu" list="modelNames" autocomplete="off" spellcheck="false">
+    <datalist id="modelNames"></datalist>
+    <p class="note" data-i18n="modelNote"></p>
+    <p class="note" id="modelHere"></p>
+    <p class="note ng" id="modelErr" role="alert"></p>
+    <div class="row"><button type="button" id="modelCancel" data-i18n="cancel"></button><button type="submit" class="primary" data-i18n="modelSave"></button></div>
   </form>
 </div>
 <button type="button" class="fab" id="fab" hidden data-i18n="memoFab"></button>

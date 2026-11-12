@@ -214,15 +214,27 @@ export function createLive({ api, getState, getSid, T, onResult, onError, lang }
     if (!text) return; const a = audio(); await a.ctx.resume();
     try { const buf = await a.ctx.decodeAudioData(await (await fetch("/api/speak?text=" + encodeURIComponent(text))).arrayBuffer()); const s = a.ctx.createBufferSource(); s.buffer = buf; s.connect(a.ctx.destination); s.start() } catch (e) { onError(e) }
   }
-  function drawing(c, state) {
+  function drawing(c, key, ctx, state) {
+    reg[key] ||= {};
     const box = el("div", "lv lv-draw"), svg = String((state && state[c.field]) || "");
+    reg[key].box = box; if (reg[key].busy) box.classList.add("lv-wait");   // a redraw in the middle of a turn keeps waiting
     if (!svg.trim().startsWith("<svg")) { box.append(el("small", "lv-status", T("lvNoDrawing"))); return box }
     const doc = new DOMParser().parseFromString(svg, "image/svg+xml"), root = doc.documentElement;
     if (root.nodeName !== "svg") { box.append(el("small", "lv-status", T("lvNoDrawing"))); return box }
     root.querySelectorAll("script,foreignObject,iframe").forEach(n => n.remove());
     root.querySelectorAll("*").forEach(n => [...n.attributes].forEach(a => { if (/^on/i.test(a.name) || /javascript:/i.test(a.value)) n.removeAttribute(a.name) }));
-    root.removeAttribute("width"); root.removeAttribute("height"); box.append(document.importNode(root, true));
-    return box;
+    root.removeAttribute("width"); root.removeAttribute("height"); const node = document.importNode(root, true);
+    // Whatever in the picture carries data-intent can be touched: the intent goes to the LLM in its own words,
+    // with the element's other data-* attributes. Text in the picture may name values in braces, like any text part.
+    node.querySelectorAll("text,tspan").forEach(n => n.childNodes.forEach(t => { if (t.nodeType === 3 && t.nodeValue.includes("{")) t.nodeValue = ctx.tpl(t.nodeValue) }));
+    node.querySelectorAll("[data-intent]").forEach(n => {
+      const { intent, ...rest } = n.dataset;
+      const go = e => { e.stopPropagation(); if (reg[key].busy) return; box.classList.add("lv-wait"); send(key, intent, { screen: ctx.screen, inputs: rest }).finally(() => reg[key].box.classList.remove("lv-wait")) };
+      n.setAttribute("tabindex", "0"); n.setAttribute("role", "button"); n.classList.add("lv-touch");
+      n.setAttribute("data-ahead", JSON.stringify({ intent, screen: ctx.screen, item: null, inputs: rest }));   // what touching it would send, for looking ahead
+      n.addEventListener("click", go); n.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(e) } });
+    });
+    box.append(node); return box;
   }
 
   return {
@@ -234,7 +246,7 @@ export function createLive({ api, getState, getSid, T, onResult, onError, lang }
       if (c.kind === "sounds") return sounds(c, key, state);
       if (c.kind === "output") return output(c, key, state);
       if (c.kind === "speak") return speak(c, key, ctx.tpl(c.text));
-      if (c.kind === "drawing") return drawing(c, state);
+      if (c.kind === "drawing") return drawing(c, key, ctx, state);
       return null;
     },
     setReality(r) {

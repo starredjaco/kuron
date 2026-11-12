@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync, copyFi
 import { fileURLToPath } from "node:url";
 import { dirname, basename, resolve, join } from "node:path";
 import { execFileSync } from "node:child_process";
-import { models, PRESETS, isClaude, provider } from "../lib/llm.js";
+import { PRESETS, missingFor } from "../lib/llm.js";
 import { serve } from "../lib/server.js";
 import { serveMcp } from "../lib/mcp.js";
 import { handsFor } from "../lib/hands.js";
@@ -16,7 +16,7 @@ const flag = (n, d) => { let i = args.indexOf("--" + n); if (i < 0 && n.length =
 
 // `kuron hands`: the hands as an MCP server over stdio, bound to a running kuron host (used by claude -p, Codex, any MCP client)
 if (cmd === "hands") {
-  const url = flag("url", process.env.KURON_URL || "http://127.0.0.1:4870"), turn = flag("turn", process.env.KURON_TURN || "external"), role = flag("role", "event");
+  const url = flag("url", process.env.KURON_URL || "http://127.0.0.1:4870"), role = flag("role", "event"), turn = flag("turn", process.env.KURON_TURN || "external:" + role);
   serveMcp({ tools: handsFor(role), call: (name, a) => callHand(url, turn, name, a) });
 } else main().catch(e => { console.error(e.message); process.exit(1) });
 
@@ -26,6 +26,7 @@ async function main() {
   const hasClaude = (() => { try { execFileSync(process.env.KURON_CLAUDE || "claude", ["--version"], { stdio: "ignore" }); return true } catch { return false } })();
   const preset = flag("preset", process.env.KURON_PRESET || cfg.preset || (hasClaude ? "claude" : process.env.ANTHROPIC_API_KEY ? "anthropic" : "local"));
   if (!PRESETS[preset]) { console.error("unknown preset: " + preset + " (claude | anthropic | local)"); process.exit(1) }
+  const named = ["--preset", "--compile-model", "--cpu-model"].some(f => process.argv.includes(f));   // named here: these win over the models chosen in the dev UI
   const compileModel = flag("compile-model", process.env.KURON_COMPILE_MODEL || cfg.compileModel || PRESETS[preset].compile);
   const cpuModel = flag("cpu-model", process.env.KURON_MODEL || cfg.cpuModel || PRESETS[preset].cpu);
   const HELP = `kuron — an LLM behaves as the system through hands; no code is written for any idea
@@ -40,14 +41,15 @@ async function main() {
                           claude: Claude Code (logged in) · anthropic: Anthropic API (ANTHROPIC_API_KEY) · local: Ollama
   --compile-model <name>  model for setup, requests and plans
   --cpu-model <name>      model for button presses and timers
-                          names: claude-… (Claude Code) · anthropic:<model> · openai:<model> · gemini:<model>
+                          names: claude-… (Claude Code) · codex:<model> (Codex CLI) · anthropic:<model> · openai:<model> · gemini:<model>
                           openrouter:<model> · groq:<model> · lmstudio:<model> · anything else is an Ollama model
-                          e.g. --compile-model openai:<model> --cpu-model openai:<small model>   (OPENAI_API_KEY)`;
+                          e.g. --compile-model openai:<model> --cpu-model openai:<small model>   (OPENAI_API_KEY)
+                          In the dev UI the models can be changed while it runs (the model names in the top bar).`;
   if (!cmd || cmd === "help" || cmd === "--help") { console.log(HELP); return }
-  const used = [compileModel, cpuModel].map(provider);
-  if (used.some(p => p.kind === "claude-code") && !hasClaude) { console.error("Claude Code (`claude`) is not installed. Use another --preset, or name models with --compile-model / --cpu-model."); process.exit(2) }
-  for (const p of used) if (p.keyName && !p.key) { console.error(`${p.keyName} is not set (needed for ${p.kind === "anthropic" ? "anthropic" : p.name}:${p.model}).`); process.exit(2) }
-  if (used.some(p => p.kind === "ollama")) { const have = await models(); if (!have) { console.error("Cannot reach Ollama at http://localhost:11434"); process.exit(2) } }
+  // `dev` and `try` open even when a model cannot run yet: the dev UI says what is missing and lets you choose another
+  const missing = (await Promise.all([compileModel, cpuModel].map(missingFor))).filter(Boolean);
+  if (missing.length && cmd !== "dev" && cmd !== "try") { console.error([...new Set(missing)].join("\n")); process.exit(2) }
+  if (missing.length) console.error("note: " + [...new Set(missing)].join("; ") + " — choose another model in the dev UI");
 
   const pick = () => {
     const f = args.find(a => a.endsWith(".kuron")); if (f) return resolve(f);
@@ -59,14 +61,14 @@ async function main() {
     const from = join(dirname(fileURLToPath(import.meta.url)), "..", "examples"), to = resolve("kuron-examples");
     mkdirSync(to, { recursive: true });
     for (const f of readdirSync(from, { withFileTypes: true }).filter(e => e.isFile() && e.name.endsWith(".kuron")).map(e => e.name)) if (!existsSync(join(to, f))) copyFileSync(join(from, f), join(to, f));
-    const { url } = await serve({ file: existsSync(join(to, "clinic.kuron")) ? join(to, "clinic.kuron") : null, dir: to, port, compileModel, cpuModel });
+    const { url } = await serve({ file: existsSync(join(to, "clinic.kuron")) ? join(to, "clinic.kuron") : null, dir: to, port, compileModel, cpuModel, remember: !named });
     console.log(`kuron: ${url}  (examples in ${to}; setup: ${compileModel}, events: ${cpuModel})\nEach example sets itself up the first time you open it (about a minute).`);
     return;
   }
   if (cmd === "dev") {
     const f = args.find(a => a.endsWith(".kuron")), d = args.find(a => !a.endsWith(".kuron") && existsSync(a));
     const dir = f ? dirname(resolve(f)) : resolve(d || ".");
-    const { url } = await serve({ file: f ? resolve(f) : null, dir, port, compileModel, cpuModel });
+    const { url } = await serve({ file: f ? resolve(f) : null, dir, port, compileModel, cpuModel, remember: !named });
     console.log(`kuron dev: ${url}  (setup: ${compileModel}, events: ${cpuModel})\npresentation: ${url}present`);
     return;
   }
@@ -83,7 +85,10 @@ async function main() {
   }
   if (cmd === "check") {
     const f = pick(), { server, host } = await serve({ file: f, dir: dirname(f), port: 0, compileModel, cpuModel });
-    await host.setupDone(); const res = await host.runChecks(); server.close();
+    const P = await host.setupDone();
+    if (P.error) { console.error("setup failed: " + P.error.message); process.exit(1) }
+    if (!P.world.data.checks.length) { console.error("this system has no checks to run"); process.exit(1) }
+    const res = await host.runChecks(); server.close();
     for (const c of res) { console.log((c.ok ? "✓ " : "✗ ") + c.name + (c.error ? "  — " + c.error : "")); for (const e of c.expect) console.log("    " + (e.pass ? "ok  " : "NG  ") + e.text + "\n        " + e.reason) }
     process.exit(res.every(c => c.ok) ? 0 : 1);
   }

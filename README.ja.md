@@ -79,11 +79,14 @@ npx github:Ag3497120/kuron try
 | モデル名 | 動く場所 | 必要なもの |
 |---|---|---|
 | `claude-…`（標準） | Claude Code（`claude -p`、道具は MCP サーバーとして渡す） | ログイン済みの Claude Code |
+| `codex:<model>` | Codex CLI（`codex exec`、道具は MCP サーバーとして渡す） | ログイン済みの Codex CLI |
 | `anthropic:<model>` | Anthropic API | `ANTHROPIC_API_KEY` |
 | `openai:<model>` | OpenAI、または `KURON_OPENAI_BASE_URL` で指定した互換サーバー | `OPENAI_API_KEY` |
 | `gemini:` · `openrouter:` · `groq:<model>` | 各社の OpenAI 互換 API | `GEMINI_API_KEY` · `OPENROUTER_API_KEY` · `GROQ_API_KEY` |
 | `lmstudio:<model>` | このパソコンの LM Studio | なし |
 | それ以外 | このパソコンの Ollama | Ollama |
+
+開発画面では、上のバーのモデル名を押すと設定が開きます。セットアップ用とボタン操作用のモデルを、動かしたまま上のどれにでも切り替えられます。
 
 ```bash
 kuron try --preset anthropic                                       # Anthropic API で動かす

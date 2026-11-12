@@ -61,11 +61,14 @@ npx github:Ag3497120/kuron try
 | 模型名 | 运行在 | 需要 |
 |---|---|---|
 | `claude-…`（默认） | Claude Code（`claude -p`，工具作为 MCP 服务器提供） | 已登录的 Claude Code |
+| `codex:<model>` | Codex CLI（`codex exec`，工具以 MCP 服务器的形式提供） | 已登录的 Codex CLI |
 | `anthropic:<model>` | Anthropic API | `ANTHROPIC_API_KEY` |
 | `openai:<model>` | OpenAI，或通过 `KURON_OPENAI_BASE_URL` 指定的兼容服务器 | `OPENAI_API_KEY` |
 | `gemini:` · `openrouter:` · `groq:<model>` | 各服务的 OpenAI 兼容 API | `GEMINI_API_KEY` · `OPENROUTER_API_KEY` · `GROQ_API_KEY` |
 | `lmstudio:<model>` | 本机的 LM Studio | 无 |
 | 其他名称 | 本机的 Ollama | Ollama |
+
+在开发界面中，点击顶栏的模型名称即可打开设置：准备用的模型和按钮操作用的模型都可以在运行中切换为上面任意一种。
 
 ## 规则
 

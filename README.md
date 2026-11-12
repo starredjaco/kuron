@@ -90,11 +90,14 @@ logged-in [Claude Code](https://claude.com/claude-code), an API key from a provi
 | Model name | Runs on | Needs |
 |---|---|---|
 | `claude-…` (default) | Claude Code (`claude -p`, tools as an MCP server) | a logged-in Claude Code |
+| `codex:<model>` | The Codex CLI (`codex exec`, with the tools passed as an MCP server) | A logged-in Codex CLI |
 | `anthropic:<model>` | Anthropic API | `ANTHROPIC_API_KEY` |
 | `openai:<model>` | OpenAI, or any compatible server via `KURON_OPENAI_BASE_URL` | `OPENAI_API_KEY` |
 | `gemini:` · `openrouter:` · `groq:<model>` | that provider's OpenAI-compatible API | `GEMINI_API_KEY` · `OPENROUTER_API_KEY` · `GROQ_API_KEY` |
 | `lmstudio:<model>` | LM Studio on this machine | nothing |
 | anything else | Ollama on this machine | Ollama |
+
+In the dev UI, the model names in the top bar open a picker: the model for setup and the model for button presses can each be changed to any of the above while the system runs.
 
 ```bash
 kuron try --preset anthropic                                       # Anthropic API
