@@ -224,16 +224,11 @@ export function createLive({ api, getState, getSid, T, onResult, onError, lang }
     root.querySelectorAll("script,foreignObject,iframe").forEach(n => n.remove());
     root.querySelectorAll("*").forEach(n => [...n.attributes].forEach(a => { if (/^on/i.test(a.name) || /javascript:/i.test(a.value)) n.removeAttribute(a.name) }));
     root.removeAttribute("width"); root.removeAttribute("height"); const node = document.importNode(root, true);
-    // Whatever in the picture carries data-intent can be touched: the intent goes to the LLM in its own words,
-    // with the element's other data-* attributes. Text in the picture may name values in braces, like any text part.
+    // Whatever in the picture carries data-intent can be touched, pressed by a key or dragged (see parts.js).
+    // Text in the picture may name values in braces, like any text part.
     node.querySelectorAll("text,tspan").forEach(n => n.childNodes.forEach(t => { if (t.nodeType === 3 && t.nodeValue.includes("{")) t.nodeValue = ctx.tpl(t.nodeValue) }));
-    node.querySelectorAll("[data-intent]").forEach(n => {
-      const { intent, ...rest } = n.dataset;
-      const go = e => { e.stopPropagation(); if (reg[key].busy) return; box.classList.add("lv-wait"); send(key, intent, { screen: ctx.screen, inputs: rest }).finally(() => reg[key].box.classList.remove("lv-wait")) };
-      n.setAttribute("tabindex", "0"); n.setAttribute("role", "button"); n.classList.add("lv-touch");
-      n.setAttribute("data-ahead", JSON.stringify({ intent, screen: ctx.screen, item: null, inputs: rest }));   // what touching it would send, for looking ahead
-      n.addEventListener("click", go); n.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(e) } });
-    });
+    window.KuronParts.wire(node, { screen: ctx.screen, inputs: () => ({}), hasFields: false,
+      fire: (intent, payload) => { if (reg[key].busy) return; box.classList.add("lv-wait"); return send(key, intent, payload).finally(() => reg[key].box.classList.remove("lv-wait")) } });
     box.append(node); return box;
   }
 

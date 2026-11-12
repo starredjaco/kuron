@@ -187,6 +187,13 @@ button.models:hover{color:var(--ink);border-color:var(--ink-3)}
 .lv-touch:hover,.lv-touch:focus-visible{filter:brightness(1.12);outline:none}
 .lv-touch:focus-visible{stroke:var(--accent);stroke-width:2}
 .lv-wait{opacity:.6;pointer-events:none;transition:opacity .2s}
+.pg{display:block}
+.stg{position:relative;border-radius:12px;overflow:hidden;background:#000;line-height:0}
+.stg canvas{display:block;width:100%;position:relative;outline:none}
+.stg.lv-wait{opacity:1;pointer-events:auto}
+.stg video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.stg video[hidden]{display:none}
+.stg-note{position:absolute;left:8px;bottom:6px;line-height:1.3;color:#fff}
 .lv-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .lv-btn,.lv select{border:1px solid color-mix(in srgb,var(--screen-ink) 25%,transparent);background:var(--screen);color:var(--screen-ink);border-radius:8px;padding:5px 10px;font:inherit;font-size:12.5px}
 .lv-status{color:var(--ink-3);font-size:12px}

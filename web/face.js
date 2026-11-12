@@ -14,7 +14,7 @@
     if (p.order && p.order.property) { q.sortField = p.order.property; q.sortValues = p.order.values || []; q.sortDesc = p.order.direction === "descending" }
     if (p.kind === "sounds") q.source = "__sounds";
     if (p.kind === "output") q.gains = "__bands";
-    if (p.kind === "drawing") q.field = p.value;
+    if (p.kind === "drawing" || p.kind === "page" || p.kind === "stage") q.field = p.value;
     if (p.row) q.row = p.row.map(facePart);
     return q;
   }
@@ -30,6 +30,8 @@
   function createFace({ root, T, onPress = null, onLive = null, onError = () => { } }) {
     let ir = null, state = null, busy = {}, highlight = null, readOnly = !onPress, R = null, only = null;
     const cur = {}, forms = {}, toastT = {};
+    // pages the LLM wrote and stages it declared (ui/parts.js, shared with the dev UI; absent where only a replay is shown)
+    const parts = !window.KuronParts ? null : window.KuronParts({ tpl, rows: listOf, getState: () => state, T, readOnly, send: (key, intent, payload) => onLive ? onLive({ intent, ...payload }) : Promise.resolve() });
 
     function tpl(text, row) {
       return String(text || "").replace(/\{([^{}]+)\}/g, (_, k) => {
@@ -65,6 +67,7 @@
     }
 
     function comp(c, ctx) {
+      if (c.kind === "page" || c.kind === "stage") return ctx.row || !parts ? null : parts[c.kind](c, ctx.screen + ":" + ctx.index, ctx);
       if (LIVE_KINDS.includes(c.kind)) return ctx.row ? null : live.render(c, { ...ctx, tpl: t => tpl(t, null) });
       const row = ctx.row ? ctx.row.item : undefined;
       switch (c.kind) {

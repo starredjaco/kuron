@@ -14,7 +14,7 @@
     if (p.order && p.order.property) { q.sortField = p.order.property; q.sortValues = p.order.values || []; q.sortDesc = p.order.direction === "descending" }
     if (p.kind === "sounds") q.source = "__sounds";
     if (p.kind === "output") q.gains = "__bands";
-    if (p.kind === "drawing") q.field = p.value;
+    if (p.kind === "drawing" || p.kind === "page" || p.kind === "stage") q.field = p.value;
     if (p.row) q.row = p.row.map(facePart);
     return q;
   }
@@ -30,6 +30,8 @@
   function createFace({ root, T, onPress = null, onLive = null, onError = () => { } }) {
     let ir = null, state = null, busy = {}, highlight = null, readOnly = !onPress, R = null, only = null;
     const cur = {}, forms = {}, toastT = {};
+    // pages the LLM wrote and stages it declared (ui/parts.js, shared with the dev UI; absent where only a replay is shown)
+    const parts = !window.KuronParts ? null : window.KuronParts({ tpl, rows: listOf, getState: () => state, T, readOnly, send: (key, intent, payload) => onLive ? onLive({ intent, ...payload }) : Promise.resolve() });
 
     function tpl(text, row) {
       return String(text || "").replace(/\{([^{}]+)\}/g, (_, k) => {
@@ -65,6 +67,7 @@
     }
 
     function comp(c, ctx) {
+      if (c.kind === "page" || c.kind === "stage") return ctx.row || !parts ? null : parts[c.kind](c, ctx.screen + ":" + ctx.index, ctx);
       if (LIVE_KINDS.includes(c.kind)) return ctx.row ? null : live.render(c, { ...ctx, tpl: t => tpl(t, null) });
       const row = ctx.row ? ctx.row.item : undefined;
       switch (c.kind) {
@@ -325,14 +328,27 @@
         if (text && text !== r.text) { if (r.text !== undefined && !readOnly) say(text); r.text = text; r.line.textContent = text }
         return r.box;
       }
-      function drawing(c) {
+      function drawing(c, key, ctx) {
+        reg[key] ||= {};
         const box = el("div", "lv lv-draw"), svg = String((state && state[c.field]) || "");
+        reg[key].box = box; if (reg[key].busy) box.classList.add("lv-wait");   // a redraw in the middle of a turn keeps waiting
         if (!svg.trim().startsWith("<svg")) { box.append(el("small", "lv-status", T("lvNoDrawing"))); return box }
         const doc = new DOMParser().parseFromString(svg, "image/svg+xml"), r = doc.documentElement;
         if (r.nodeName !== "svg") { box.append(el("small", "lv-status", T("lvNoDrawing"))); return box }
         r.querySelectorAll("script,foreignObject,iframe,image,use").forEach(n => n.remove());
         r.querySelectorAll("*").forEach(n => [...n.attributes].forEach(a => { if (/^on/i.test(a.name) || /javascript:|url\(/i.test(a.value) || /href$/i.test(a.name)) n.removeAttribute(a.name) }));
-        r.removeAttribute("width"); r.removeAttribute("height"); box.append(document.importNode(r, true)); return box;
+        r.removeAttribute("width"); r.removeAttribute("height"); const node = document.importNode(r, true);
+        // Whatever in the picture carries data-intent can be touched: the intent goes to the LLM in its own words,
+        // with the element's other data-* attributes. Text in the picture may name values in braces, like any text part.
+        node.querySelectorAll("text,tspan").forEach(n => n.childNodes.forEach(t => { if (t.nodeType === 3 && t.nodeValue.includes("{")) t.nodeValue = ctx.tpl(t.nodeValue) }));
+        node.querySelectorAll("[data-intent]").forEach(n => {
+          const { intent, ...rest } = n.dataset;
+          const go = e => { e.stopPropagation(); if (reg[key].busy) return; box.classList.add("lv-wait"); send(key, intent, { screen: ctx.screen, inputs: rest }).finally(() => reg[key].box.classList.remove("lv-wait")) };
+          n.setAttribute("tabindex", "0"); n.setAttribute("role", "button"); n.classList.add("lv-touch");
+          n.addEventListener("click", go); n.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(e) } });
+        });
+    if (readOnly) node.querySelectorAll(".lv-touch").forEach(n => n.classList.remove("lv-touch"));
+        box.append(node); return box;
       }
       return {
         say, setReality() { applyMix() },
@@ -343,7 +359,7 @@
           if (c.kind === "sounds") return sounds(c, key);
           if (c.kind === "output") return output(c, key);
           if (c.kind === "speak") return speak(c, key, ctx.tpl(c.text));
-          if (c.kind === "drawing") return drawing(c);
+          if (c.kind === "drawing") return drawing(c, key, ctx);
           return null;
         },
         reset() { stopSounds(); for (const k of Object.keys(reg)) delete reg[k]; noiseBuf = null; if (A.ctx) { A.ctx.close(); A.ctx = null; A.eqKey = null } },

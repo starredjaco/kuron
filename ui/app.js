@@ -102,6 +102,7 @@ function chart(values) {
 /* ---------- components ---------- */
 const LIVE_KINDS = ["camera", "mic", "sounds", "output", "speak", "drawing"];
 function comp(c, ctx) {
+  if (c.kind === "page" || c.kind === "stage") return ctx.row ? null : parts[c.kind](c, ctx.screen + ":" + ctx.index, ctx);
   if (LIVE_KINDS.includes(c.kind)) return ctx.row ? null : live.render(c, { ...ctx, tpl: t => tpl(t, null) }, state);
   const row = ctx.row ? ctx.row.item : undefined;
   switch (c.kind) {
@@ -165,7 +166,7 @@ function aheadSoon() {
   aheadTimer = setTimeout(() => {
     if (!ST || !ST.aheadOn || ST.compiling || Object.keys(busy).length || document.querySelector(".lv-wait")) return;
     const seen = new Set(), candidates = [];
-    document.querySelectorAll("#stage [data-ahead]").forEach(n => { const k = n.getAttribute("data-ahead"); if (!seen.has(k)) { seen.add(k); candidates.push(JSON.parse(k)) } });
+    for (const k of [...[...document.querySelectorAll("#stage [data-ahead]")].map(n => n.getAttribute("data-ahead")), ...parts.candidates()]) if (!seen.has(k)) { seen.add(k); candidates.push(JSON.parse(k)) }
     if (candidates.length) api("/api/ahead", { candidates }).catch(() => { });
   }, 400);
 }
@@ -341,6 +342,12 @@ function renderTop() {
   if (newStart && !ST.compiling && ST.ir && !u.busy && newFile === ST.program) { banner(T("readyIn").replace("{s}", Math.round((Date.now() - newStart) / 1000))); newStart = null }
 }
 let newStart = null, newFile = null;
+// pages the LLM wrote and stages it declared (ui/parts.js): what they send is an event like any other
+const parts = window.KuronParts({ tpl, rows: listOf, getState: () => state, T: k => T(k),
+  send: async (key, intent, payload) => {
+    try { const r = await api("/api/act", { sid, action: intent, ...payload }); state = r.state; if (r.notice) banner(r.notice); renderStage(); renderPane() }
+    catch (e) { banner(T("error") + ": " + e.message) }
+  } });
 const live = createLive({ api, getSid: () => sid, getState: () => state, T: k => T(k), lang: (ST && ST.ir && ST.ir.lang) || lang,
   onResult: r => { state = r.state; if (r.notice) banner(r.notice); renderStage(); renderPane() }, onError: e => banner(T("error") + ": " + e.message) });
 function renderReality() {
@@ -433,7 +440,7 @@ async function boot() {
     if (ev.type === "models" && ev.status) { ST.models = ev.status.models; renderTop(); return }
     if (ev.type === "reality") { ST.realityOn = ev.on; renderReality(); return }
     if (ev.type === "ahead") { const was = ST.aheadOn; ST.aheadOn = ev.on; aheadInfo = ev; renderAhead(); if (ev.on && !was) aheadSoon(); return }
-    if (ev.type === "program") { live.reset(); if (newStart) newFile = ev.program; else banner(""); await reloadProgram(); return }
+    if (ev.type === "program") { live.reset(); parts.reset(); if (newStart) newFile = ev.program; else banner(""); await reloadProgram(); return }
     if (ev.type === "upstream") { ST.upstream = ev.upstream; if (ev.upstream.kind === "new" && !ev.upstream.busy && ev.upstream.error) { banner(T("upstreamErr") + ": " + ev.upstream.error); newStart = null } renderTop(); if (ev.status) ST = ev.status; if (tab === "req" || tab === "rev") renderPane() }
     if (ev.type === "source") { ST.text = ev.text; if (tab === "src") renderPane() }
     if (ev.type === "check" && ev.phase === "done") { checks = ev.checks; checking = false; if (tab === "check") renderPane() }

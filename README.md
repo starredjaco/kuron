@@ -62,6 +62,11 @@ button / timer / picture / sound ─▶ the LLM acts as the system ─▶ reads 
 - **Checks.** Scenarios of a person using the system, played on a copy of it and judged.
 - **Reverse.** A spec with what the system actually did as golden examples, a schedule, and prompts for a coding agent.
 - **Real-world parts.** Test sounds, sound shaping for earphones, speech, drawings, pictures.
+- **Faces beyond forms.** The LLM chooses what the idea looks like: ordinary parts, a page in its own HTML and CSS, a
+  drawing whose pieces can be touched, dragged or pressed by keys, or a stage — bodies and reflexes it declares, run
+  every frame on your device, which tell it only what matters (a level cleared, a pose to judge).
+- **Look ahead** (off by default). While nobody is pressing anything, the LLM plays what can be pressed next on copies
+  of the world; a press whose answer is ready takes it at once. It uses the LLM more.
 
 ## Where it fits
 
@@ -115,7 +120,7 @@ you press them. Its source is in `web/` (`node tools/build-web.mjs`).
 
 | Code contains | Code never contains |
 |---|---|
-| Generic tools (store and read data, define screens, notify, sound, speech, drawings, timers, checks, estimates), a shape check on every tool call that answers in words, a minimal renderer | Business judgement, word lists, guessing what the LLM meant, exceptions for one idea |
+| Generic tools (store and read data, define screens, notify, sound, speech, drawings, pages, stages, timers, checks, estimates), a shape check on every tool call that answers in words, a renderer that shows what the LLM wrote and runs the reflexes it declared | Business judgement, word lists, guessing what the LLM meant, exceptions for one idea |
 
 When something does not fit, a tool tells the LLM what is wrong and the LLM corrects itself. When a prototype behaves
 wrongly, you tell it how it should behave. See [docs/DESIGN.md](docs/DESIGN.md).

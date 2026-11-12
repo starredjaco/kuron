@@ -113,3 +113,10 @@
 .kface .lv-touch{cursor:pointer}
 .kface .lv-touch:hover,.kface .lv-touch:focus-visible{filter:brightness(1.12);outline:none}
 .kface .lv-wait{opacity:.6;pointer-events:none}
+.kface .pg{display:block}
+.kface .stg{position:relative;border-radius:12px;overflow:hidden;background:#000;line-height:0}
+.kface .stg canvas{display:block;width:100%;position:relative}
+.kface .stg.lv-wait{opacity:1;pointer-events:auto}
+.kface .stg video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.kface .stg video[hidden]{display:none}
+.kface .stg-note{position:absolute;left:8px;bottom:6px;line-height:1.3;color:#fff}

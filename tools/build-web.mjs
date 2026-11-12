@@ -20,6 +20,7 @@ const safe = s => s.replace(/<\/(script)/gi, "<\\/$1");
 const page = r("web/shell.html")
   .replace("/*@face.css*/", () => r("web/face.css"))
   .replace("/*@preload*/", () => safe(JSON.stringify(preload)))
+  .replace("/*@parts.js*/", () => safe(r("ui/parts.js")))
   .replace("/*@face.js*/", () => safe(r("web/face.js")))
   .replace("/*@kuron.js*/", () => safe(r("web/kuron.js")))
   .replace("/*@app.js*/", () => safe(r("web/app.js")));

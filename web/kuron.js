@@ -34,7 +34,12 @@
       for (const [i, c] of changes.entries()) {
         const where = `change ${i + 1} (${c.op} ${c.collection || ""})`;
         if (!c.collection) { problems.push(where + ": collection is missing"); continue }
-        const list = d.collections[c.collection] ||= [];
+        // a collection comes into being only by adding to it, and never under the name of a value (the face reads both by name)
+      if (!d.collections[c.collection]) {
+        if (c.op !== "add") { problems.push(where + `: there is no collection "${c.collection}"${d.values[c.collection] !== undefined ? " (that name is a value: set it with values, or with the hand that wrote it)" : ""}`); continue }
+        if (d.values[c.collection] !== undefined) { problems.push(where + `: "${c.collection}" is already the name of a value; use another name`); continue }
+      }
+      const list = d.collections[c.collection] ||= [];
         if (c.op === "add") {
           if (!c.item || typeof c.item !== "object") { problems.push(where + ": item must be an object"); continue }
           const item = { ...c.item, id: c.item.id && !list.some(x => x.id === c.item.id) ? String(c.item.id) : "i" + d.nextId++ };
@@ -55,7 +60,7 @@
           list.sort((a, b) => (pos.has(a.id) ? pos.get(a.id) : 1e9) - (pos.has(b.id) ? pos.get(b.id) : 1e9)); done.push({ op: "order", collection: c.collection });
         } else problems.push(where + ': op must be "add", "update", "remove" or "order"');
       }
-      if (values && typeof values === "object") for (const [k, v] of Object.entries(values)) { d.values[k] = v; done.push({ op: "value", name: k }) }
+      if (values && typeof values === "object") for (const [k, v] of Object.entries(values)) { if (d.collections[k]) { problems.push(`value "${k}": that name is a collection; use another name`); continue } d.values[k] = v; done.push({ op: "value", name: k }) }
       if (done.length) this.changed("state");
       return { done, problems };
     }
@@ -73,7 +78,7 @@
       gainDb: { type: "number", description: "gain of this band in dB: 0 = unchanged, negative = suppress (down to -60), positive = boost (up to +24)" } },
       required: ["label", "lowHz", "highHz", "gainDb"] },
   };
-  const KINDS = ["heading", "text", "metric", "input", "select", "button", "list", "table", "badge", "chart", "image", "divider", "camera", "mic", "sounds", "output", "speak", "drawing"];
+  const KINDS = ["heading", "text", "metric", "input", "select", "button", "list", "table", "badge", "chart", "image", "divider", "camera", "mic", "sounds", "output", "speak", "drawing", "page", "stage"];
   const ROW_KINDS = ["heading", "text", "badge", "button", "metric"];
   const partProps = {
     kind: { type: "string", enum: KINDS },
@@ -87,8 +92,18 @@
     order: { type: "object", properties: { property: { type: "string" }, values: { type: "array", items: { type: "string" }, description: "word values in display order (first shown first)" }, direction: { type: "string", enum: ["ascending", "descending"] } } },
     columns: { type: "array", items: { type: "string" } }, empty: { type: "string" },
     every: { type: "number", description: "camera / mic / output: seconds between automatic sends (0 = only on a button)" },
-    value: { type: "string", description: "drawing: the value that holds the SVG; elements in it with data-intent can be touched" },
+    value: { type: "string", description: "drawing: the value that holds the SVG (draw). page: the value that holds your HTML (write_page). stage: the value that holds the stage (set_stage)" },
   };
+  const BODY = { type: "object", properties: {
+    id: { type: "string" }, tags: { type: "array", items: { type: "string" }, description: "names rules use to pick bodies" },
+    shape: { type: "string", enum: ["rect", "circle", "text"] }, text: { type: "string", description: "words or an emoji drawn at its centre; may name a counter or a value in braces" },
+    x: { description: "centre, in stage units; any number here may be [min, max] for a random one" }, y: {}, w: {}, h: {}, r: {}, size: { description: "text size" }, radius: {},
+    vx: { description: "units per second" }, vy: {}, ax: {}, ay: { description: "acceleration, e.g. gravity" },
+    fill: { type: "string" }, stroke: { type: "string" },
+    edges: { type: "string", enum: ["none", "bounce", "stop", "wrap", "leave"], description: "what the stage's edges do to it; leave = it is removed once outside" },
+    follow: { type: "string", enum: ["pointer", "pointer-x", "pointer-y"] },
+    keys: { type: "object", description: "key name → {set:{vx,vy}} while held, or {push:{vx,vy}} once when pressed, e.g. {\"ArrowLeft\":{\"set\":{\"vx\":-220}},\"Space\":{\"push\":{\"vy\":-380}}}" },
+    life: { description: "seconds until it disappears" } }, required: ["shape", "x", "y"] };
   const rowPart = { type: "object", properties: { ...partProps, kind: { type: "string", enum: ROW_KINDS } }, required: ["kind"] };
   const part = { type: "object", properties: { ...partProps, row: { type: "array", items: rowPart } }, required: ["kind"] };
   const ok = t => ({ text: typeof t === "string" ? t : JSON.stringify(t) }), fail = t => ({ text: t, isError: true });
@@ -107,7 +122,7 @@
       run: ({ world }, a) => {
         const bad = (a.parts || []).filter(p => !KINDS.includes(p.kind)).map(p => p.kind);
         if (bad.length) return fail(`unknown part kinds: ${bad.join(", ")}. Use: ${KINDS.join(", ")}`);
-        const NEED = { heading: ["text"], text: ["text"], metric: ["label", "text"], badge: ["text"], button: ["text"], input: ["name"], select: ["name", "options"], list: ["collection"], table: ["collection"], chart: ["collection"], drawing: ["value"], speak: ["text"], image: ["text"] };
+        const NEED = { heading: ["text"], text: ["text"], metric: ["label", "text"], badge: ["text"], button: ["text"], input: ["name"], select: ["name", "options"], list: ["collection"], table: ["collection"], chart: ["collection"], drawing: ["value"], page: ["value"], stage: ["value"], speak: ["text"], image: ["text"] };
         const missing = [];
         const look = (list, where) => list.forEach((p, i) => { for (const k of NEED[p.kind] || []) if (p[k] === undefined || p[k] === "") missing.push(`${where}[${i}] ${p.kind} needs ${k}`); if (p.where && typeof p.where === "object" && Object.keys(p.where).length !== 1) missing.push(`${where}[${i}] ${p.kind} where must name exactly one property (it has ${Object.keys(p.where).length})`); if (p.row) look(p.row, `${where}[${i}].row`) });
         look(a.parts || [], "parts");
@@ -130,7 +145,21 @@
       input: { type: "object", properties: { text: { type: "string" } }, required: ["text"] }, run: ({ emit }, a) => { emit({ type: "speak", text: a.text }); return ok("spoken") } },
     { name: "draw", roles: ["setup", "event", "request"], description: "Draw a picture as SVG into a named value; a drawing part shows it. The picture can be the face itself (a board, a map, cards, a scene): give any element data-intent=\"what touching it means, in plain words\" and touching it sends you that intent, with the element's other data-* attributes as inputs (e.g. data-cell=\"b3\"). Text may name values in braces, e.g. {score}, so it follows the world without redrawing. It may move (SVG animate, CSS in a style element). No scripts, no outside images.",
       input: { type: "object", properties: { value: { type: "string" }, svg: { type: "string" } }, required: ["value", "svg"] },
-      run: ({ world }, a) => { if (!/^\s*<svg[\s>]/.test(a.svg)) return fail("svg must start with <svg"); world.data.values[a.value] = a.svg; world.changed("state"); return ok("drawn") } },
+      run: ({ world }, a) => { if (!/^\s*<svg[\s>]/.test(a.svg)) return fail("svg must start with <svg"); if (world.data.collections[a.value]) return fail(`"${a.value}" is the name of a collection; use another name`); world.data.values[a.value] = a.svg; world.changed("state"); return ok("drawn") } },
+    { name: "write_page", roles: ["setup", "event", "request"],
+      description: "Write a face of your own as HTML and CSS into a named value; a page part shows it exactly as written (scoped to that screen). Use it when the look and layout matter and the ordinary parts would flatten the idea. No scripts and nothing from outside (no links, images by URL, fonts); inline SVG and emoji are fine. Set both the background and the text colour of what you write (the device frame around it may be light or dark). Text and attributes may name values in braces ({score}, style=\"width:{percent}%\"). <template data-each=\"collection\" data-where='{\"property\":value}' data-sort=\"property\" data-empty=\"…\">…{property}…</template> is written once per item. Anything with data-intent=\"…\" can be touched and sends you that intent with its other data-* attributes, the item it was written for, and the values of the page's named input/select/textarea fields; a field with data-intent sends when changed. data-key=\"ArrowLeft\" lets a key do the same; data-point adds where it was touched (px, py from 0 to 1); an element with data-drag can be dropped on one with data-drop-intent=\"…\", which sends that intent with both.",
+      input: { type: "object", properties: { value: { type: "string" }, html: { type: "string" } }, required: ["value", "html"] },
+      run: ({ world }, a) => { if (/<script[\s>]/i.test(a.html)) return fail("not saved: a page cannot hold scripts; what happens is yours to do when an intent reaches you"); if (world.data.collections[a.value]) return fail(`"${a.value}" is the name of a collection; use another name`); world.data.values[a.value] = a.html; world.changed("state"); return ok("page written") } },
+    { name: "set_stage", roles: ["setup", "event", "request"],
+      description: "For what must move or answer many times a second (things falling, flowing, bouncing, steered by keys or the pointer), where you cannot answer each instant yourself: declare bodies and reflex rules into a named value; a stage part runs them every frame on the person's device. Reflexes only move, remove, spawn and count; everything that means something (a level cleared, a life lost, a pose to judge) you ask to be told with do:\"tell\" and decide yourself — then change values, or set the stage again for what comes next (setting it restarts it). Rules: when \"touch\" (a meets b), \"edge\" (a reaches an edge), \"every\" (seconds), \"key\", \"tap\" (a, or anywhere), \"count\" (a counter reaches a number from where it started, rising or falling; once). Each rule's then is a list of {do:\"bounce\"|\"remove\"|\"stop\"|\"set\"|\"spawn\"|\"count\"|\"pause\"|\"resume\"|\"tell\"}; who is \"a\", \"b\", an id or a tag. tell sends you its intent with the counters, the seconds run and the bodies involved; pause:true holds the stage until you have answered; picture:true sends a camera picture too (with camera:true the camera is the stage's background).",
+      input: { type: "object", properties: { value: { type: "string" }, stage: { type: "object", properties: {
+        width: { type: "number" }, height: { type: "number" }, background: { type: "string" }, camera: { type: "boolean" }, counters: { type: "object" },
+        bodies: { type: "array", items: BODY },
+        rules: { type: "array", items: { type: "object", properties: {
+          when: { type: "string", enum: ["touch", "edge", "every", "key", "tap", "count"] }, a: { type: "string", description: "id or tag" }, b: { type: "string" },
+          edge: { type: "string", enum: ["left", "right", "top", "bottom", "any"] }, seconds: { type: "number" }, key: { type: "string" }, counter: { type: "string" }, reaches: { type: "number" },
+          then: { type: "array", items: { type: "object", properties: { do: { type: "string", enum: ["bounce", "remove", "stop", "set", "spawn", "count", "pause", "resume", "tell"] }, who: { type: "string" }, props: { type: "object" }, body: BODY, counter: { type: "string" }, by: {}, intent: { type: "string" }, pause: { type: "boolean" }, picture: { type: "boolean" } }, required: ["do"] } } }, required: ["when", "then"] } } }, required: ["width", "height", "bodies"] } }, required: ["value", "stage"] },
+      run: ({ world }, a) => { if (world.data.collections[a.value]) return fail(`"${a.value}" is the name of a collection; use another name`); world.data.values[a.value] = a.stage; world.changed("state"); return ok(`stage set with ${a.stage.bodies.length} bodies and ${(a.stage.rules || []).length} rules`) } },
     { name: "set_timer", roles: ["setup", "request"], description: "Run an intent every N seconds while the system is open (e.g. time passing, a sensor drifting). Same name replaces; everySec 0 removes; otherwise at least 5.",
       input: { type: "object", properties: { name: { type: "string" }, everySec: { type: "number" }, intent: { type: "string" } }, required: ["name", "everySec", "intent"] },
       run: ({ world }, a) => { if (a.everySec > 0 && a.everySec < 5) return fail("everySec must be 0 (remove) or at least 5; nothing was set"); const d = world.data; d.timers = d.timers.filter(t => t.name !== a.name); if (a.everySec > 0) d.timers.push({ name: a.name, every: a.everySec, intent: a.intent }); world.changed("timers"); return ok(a.everySec > 0 ? "timer set" : "timer removed") } },
@@ -189,16 +218,21 @@
   const COMMON = `You are not writing software. You ARE the system: everything it does happens because you do it, through the tools (your hands). Never write code. Write everything a person sees in the system's language. Call independent tools together in the same round.`;
   const ROLE_PROMPTS = {
     setup: `${COMMON}
-Make the idea exist as a system a person can use by hand right now — even if it would normally take weeks to build. First decide what this is to the person using it — a tool for work, a game, a story, a board, a map, an instrument, a companion, something else — and what they should see and touch. Do not fall back on forms and lists: they suit records and queues of work. When the idea is played, explored or watched, the face is a picture you draw: the board, scene, cards or map itself (draw + a drawing part), with the things a person touches carrying intents, text that follows values, and motion where it gives life. Then, using only the tools:
-1. write_brief: the system's name, language and brief — what kind of thing it is, its roles, rules, and what you will do for each intent (including judgements ordinary code could not make, and how you redraw the picture as things happen).
+Make the idea exist as a system a person can use by hand right now — even if it would normally take weeks to build. First decide what this is to the person using it — a tool for work, a game, a story, a board, a map, an instrument, a companion, something else — and what they should see and touch. Do not fall back on forms and lists: they suit records and queues of work. Choose the face that fits, and mix them on one screen where it helps:
+- ordinary parts — records and queues of work.
+- a page (write_page + a page part) — your own HTML and CSS, when the look and layout are part of the idea.
+- a drawing (draw + a drawing part) — a board, map, cards or scene you draw and redraw; what is in it can be touched, dragged or pressed by keys.
+- a stage (set_stage + a stage part) — what moves or must answer many times a second; you declare bodies and reflexes and are told only what matters.
+Every touch on a page or drawing is a turn of yours and takes seconds, so whatever has to feel immediate belongs on a stage. Then, using only the tools:
+1. write_brief: the system's name, language and brief — what kind of thing it is, its roles, rules, and what you will do for each intent (including judgements ordinary code could not make, and how the face changes as things happen).
 2. apply: create the collections it needs with realistic test data (a believable situation to try right away).
-3. define_screen: a screen for each device or role the idea needs, in the form you decided; only what is needed to use the core. A drawn face is a drawing part (draw it before you finish), with ordinary parts around it only where they help. Buttons carry intents in plain words; lists name their collection and, when the order matters, give it (with word values in display order). Use real-world parts (camera, sounds, output, speak, drawing) when the idea touches the real world.
+3. define_screen: a screen for each device or role the idea needs, in the form you decided; only what is needed to use the core. A page, drawing or stage is one part naming its value (write, draw or set it before you finish), with ordinary parts around it only where they help. Buttons carry intents in plain words; lists name their collection and, when the order matters, give it (with word values in display order). Use real-world parts (camera, sounds, output, speak, drawing) when the idea touches the real world.
 4. set_timer when time passing matters; play_sounds when a test situation needs them.
 5. add_check: 2–4 scenarios of a person using it and what must then be true.
 6. set_reality: how this would behave if built today with existing technology — for every intent, which parts would be ordinary code, a model, an outside service or not possible yet, how often it would go wrong, how late it would answer and how it typically fails; plus sound delay and leakage if sound is involved.
 If a tool reports a problem, correct your call. Finish with one sentence saying what you made.`,
     event: `${COMMON}
-Something just happened in the system (below). Act as the system would: read only what you need (query), make every change in one apply, redraw (draw) a picture you drew when what it shows has changed, and add speak / notify / play_sounds / shape_sound / draw / define_screen only if the behaviour calls for it. Judge, predict and generate concretely and realistically. Never invent facts the world contradicts; if something needed is missing, say so in your reply. Use at most 4 tools. Reply with one short sentence for the person, or nothing.`,
+Something just happened in the system (below). Act as the system would: read only what you need (query), make every change in one apply, redraw a drawing (draw), rewrite a page (write_page) or set the stage again (set_stage) only when what it shows must change (values in braces follow by themselves), and add speak / notify / play_sounds / shape_sound / draw / define_screen only if the behaviour calls for it. Judge, predict and generate concretely and realistically. Never invent facts the world contradicts; if something needed is missing, say so in your reply. Use at most 4 tools. Reply with one short sentence for the person, or nothing.`,
     request: `${COMMON}
 A person tried the system and asked for a change (below). Make the change through the tools — rewrite the brief, redefine screens, adjust data, timers or checks. Keep everything else as it is. Reply with one sentence saying what changed.`,
   };
